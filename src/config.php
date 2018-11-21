@@ -1,7 +1,6 @@
 <?php
 
 namespace sethink\swooleOrm;
-
 Db::setConfig([
     // 数据库类型
     'type'            => '',
