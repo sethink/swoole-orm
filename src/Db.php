@@ -1,6 +1,10 @@
 <?php
 namespace sethink\swooleOrm;
 
+/**
+ * Class Db
+ * @package sethink\swooleOrm
+ */
 class Db
 {
     /**
