@@ -9,6 +9,7 @@ class Db
      */
     protected static $config = [];
 
+
     /**
      * 查询类名
      * @var string
