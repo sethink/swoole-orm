@@ -1,0 +1,23 @@
+{
+  "name": "sethink/swoole-orm",
+  "description": "sethink",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "sethink",
+      "email": "358066237@qq.com"
+    }
+  ],
+  "require": {
+    "php":">=7.0.0",
+    "ext-swoole":">=4.2.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "sethink\\":"src"
+    },
+    "files": [
+      "src/config.php"
+    ]
+  }
+}
