@@ -14,7 +14,7 @@
   },
   "autoload": {
     "psr-4": {
-      "sethink\\":"src"
+      "sethink\\swooleOrm\\":"src"
     },
     "files": [
       "src/config.php"
