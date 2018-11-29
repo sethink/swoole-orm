@@ -2,19 +2,14 @@
 namespace sethink\swooleOrm;
 
 use sethink\swooleOrm\db\Query;
+
 /**
  * Class Db
  * @package sethink\swooleOrm
- * @method Query name(string $tableName) static 指定数据表
+ * @method Query init(string $server) static 初始化，加入server
  */
 class Db
 {
-    protected $params;
-    public function __construct($params)
-    {
-        $this->params = $params;
-    }
-
     public static function __callStatic($method, $args)
     {
         $class = '\\sethink\\swooleOrm\\db\\Query';

@@ -10,14 +10,22 @@ class MysqlPool
     protected $available = true;
 
     protected $config = [
-        'host'     => '127.0.0.1',
-        'port'     => 3306,
-        'user'     => 'root',
-        'password' => 'root',
-        'charset'  => 'utf-8',
-        'database' => '',
-        'poolMin'  => '5',
-        'clearTime'=> '60000'
+        //服务器地址
+        'host'      => '127.0.0.1',
+        //端口
+        'port'      => 3306,
+        //用户名
+        'user'      => '',
+        //密码
+        'password'  => '',
+        //数据库编码，默认为utf8
+        'charset'   => 'utf8',
+        //数据库名
+        'database'  => '',
+        //空闲时，队列中保存的最大链接，默认为5
+        'poolMin'   => '5',
+        //清除队列空闲链接的定时器，默认60s
+        'clearTime' => '60000'
     ];
 
 
@@ -26,6 +34,8 @@ class MysqlPool
         $this->server = $server;
         $this->config = array_merge($this->config, $config);
         $this->server->pool = new \SplQueue();
+
+        $this->clearTimer();
     }
 
 
@@ -54,7 +64,7 @@ class MysqlPool
             'database' => $this->config['database']
         ]);
         if($res){
-            return $res;
+            return $mysql;
         }else{
             return false;
         }

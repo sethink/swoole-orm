@@ -2,16 +2,14 @@
 
 namespace sethink\swooleOrm\db;
 
-use sethink\swooleOrm\MysqlPool;
-
 class Query
 {
+    //server
+    protected $server;
+    //sql生成器
     protected $builder;
-    protected $MysqlPool;
-    /**
-     * @表各个参数
-     * @var array
-     */
+
+    //db参数
     protected $options = [
         'table'     => '',
         'alias'     => [],
@@ -28,18 +26,29 @@ class Query
         'data'      => [],
     ];
 
-    protected $sethinkBind = [];
 
-
-    public function __construct($params = '')
+    public function __construct()
     {
-        var_dump($params);
         // 创建Builder对象
         $this->builder = new Builder();
     }
 
+
+    /**
+     * @初始化
+     *
+     * @param $server
+     * @return $this
+     */
+    public function init($server){
+        $this->server = $server;
+        return $this;
+    }
+
+
     /**
      * @表名
+     *
      * @param $tableName
      * @return $this
      */
@@ -56,6 +65,12 @@ class Query
     }
 
 
+    /**
+     * @查询字段
+     *
+     * @param string $field
+     * @return $this
+     */
     public function field($field = '')
     {
         if (empty($field)) {
@@ -67,6 +82,12 @@ class Query
     }
 
 
+    /**
+     * @order by
+     *
+     * @param array $Array
+     * @return $this
+     */
     public function order($Array = [])
     {
         $this->options['order'] = $Array;
@@ -74,6 +95,12 @@ class Query
     }
 
 
+    /**
+     * @group by
+     *
+     * @param string $group
+     * @return $this
+     */
     public function group($group = '')
     {
         $this->options['group'] = $group;
@@ -81,6 +108,12 @@ class Query
     }
 
 
+    /**
+     * @having
+     *
+     * @param string $having
+     * @return $this
+     */
     public function having($having = '')
     {
         $this->options['having'] = $having;
@@ -94,6 +127,12 @@ class Query
     }
 
 
+    /**
+     * @distinct
+     *
+     * @param $distinct
+     * @return $this
+     */
     public function distinct($distinct)
     {
         $this->options['distinct'] = $distinct;
@@ -101,6 +140,11 @@ class Query
     }
 
 
+    /**
+     * @获取sql语句
+     *
+     * @return $this
+     */
     public function fetchSql()
     {
         $this->options['fetch_sql'] = true;
@@ -108,6 +152,12 @@ class Query
     }
 
 
+    /**
+     * @where语句
+     *
+     * @param array $whereArray
+     * @return $this
+     */
     public function where($whereArray = [])
     {
         $this->options['where'] = $whereArray;
@@ -115,6 +165,11 @@ class Query
     }
 
 
+    /**
+     * @查询一条数据
+     *
+     * @return array|mixed
+     */
     public function find()
     {
         $this->options['limit'] = 1;
@@ -128,50 +183,85 @@ class Query
         return $sql;
     }
 
+
+    /**
+     * @查询
+     *
+     * @return bool|mixed
+     */
     public function select()
     {
         // 生成查询SQL
-        $result            = $this->builder->select($this->options);
-        $this->sethinkBind = $result['sethinkBind'];
-
+        $result = $this->builder->select($this->options);
 
         if (!empty($this->options['fetch_sql'])) {
-            return $this->getRealSql($result['sql']);
+            return $this->getRealSql($result);
         }
 
-        $this->query($result['sql']);
+        return $this->query($result);
     }
 
 
+    /**
+     * @ 添加
+     *
+     * @param array $data
+     * @return mixed|string
+     */
     public function insert($data = [])
     {
         $this->options['data'] = $data;
 
-        $sql = $this->builder->insert($this->options);
+        $result = $this->builder->insert($this->options);
 
         if (!empty($this->options['fetch_sql'])) {
-            return $this->getRealSql($sql);
+            return $this->getRealSql($result);
         }
-        return $sql;
+        return $this->query($result);
     }
 
 
-    public function update()
+    public function update($data = [])
     {
+        $this->options['data'] = $data;
 
+        $result = $this->builder->update($this->options);
+
+        if (!empty($this->options['fetch_sql'])) {
+            return $this->getRealSql($result);
+        }
+        return $this->query($result);
     }
 
 
-    public function query($sql)
+    public function delete(){
+        // 生成查询SQL
+        $result = $this->builder->delete($this->options);
+
+        if (!empty($this->options['fetch_sql'])) {
+            return $this->getRealSql($result);
+        }
+
+        return $this->query($result);
+    }
+
+
+    /**
+     * @执行sql
+     *
+     * @param $result
+     * @return bool
+     */
+    public function query($result)
     {
         back:
 
-        $mysql = MysqlPool::get();
-        $stmt = $mysql->prepare($sql);
+        $mysql = $this->server->MysqlPool->get();
+        $stmt = $mysql->prepare($result['sql']);
 
         if($stmt){
-            $rs = $stmt->execute($this->sethinkBind);
-            MysqlPool::put($mysql);
+            $rs = $stmt->execute($result['sethinkBind']);
+            $this->server->MysqlPool->put($mysql);
             return $rs;
         }elseif($mysql->errno == 2006 or $mysql->errno == 2013){
             goto back;
@@ -181,21 +271,29 @@ class Query
     }
 
 
-    protected function getRealSql($sql)
+    /**
+     * @sql语句
+     *
+     * @param $result
+     * @return mixed
+     */
+    protected function getRealSql($result)
     {
-        if (count($this->sethinkBind) > 0) {
-            foreach ($this->sethinkBind as $v) {
-                $sql = substr_replace($sql, "'{$v}'", strpos($sql, '?'), 1);
+        if (count($result['sethinkBind']) > 0) {
+            foreach ($result['sethinkBind'] as $v) {
+                $result['sql'] = substr_replace($result['sql'], "'{$v}'", strpos($result['sql'], '?'), 1);
             }
         }
-        return $sql;
+
+        return $result['sql'];
     }
 
 
     public function __destruct()
     {
+        // TODO: Implement __destruct() method.
+        unset($this->server);
         unset($this->builder);
-        unset($this->sethinkBind);
         unset($this->options);
     }
 

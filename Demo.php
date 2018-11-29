@@ -7,7 +7,6 @@ include_once "./src/db/Builder.php";
 include_once "./src/MysqlPool.php";
 
 use sethink\swooleOrm\Db;
-use sethink\swooleOrm\db\Query;
 use sethink\swooleOrm\MysqlPool;
 use swoole;
 
@@ -25,27 +24,15 @@ class Demo
             'max_wait_time'   => 30,
         ));
 
-
         $this->server->on('Start', function ($server){
 
         });
         $this->server->on('ManagerStart', function ($server){
-            $config = [
-                'host'     => '127.0.0.1',
-                'port'     => 3306,
-                'user'     => 'root',
-                'password' => 'fengHAISHI1023',
-                'charset'  => 'utf-8',
-                'database' => 'test',
-                'poolMin'  => '5',
-                'clearTime'=> '60000'
-            ];
-            $this->server->mysqlPool = new MysqlPool($server,$config);
-            $this->server->Db = new Db($server);
+
         });
         $this->server->on('WorkerStart', array($this, 'onWorkerStart'));
         $this->server->on('WorkerStop', function($server, $worker_id){
-
+            $this->server->MysqlPool->destruct();
         });
 
         $this->server->on('open', function ($server, $request) {
@@ -56,20 +43,30 @@ class Demo
     }
 
     public function onWorkerStart($server,$worker_id){
-
+        $config = [
+            'host'     => '127.0.0.1',
+            'port'     => 3306,
+            'user'     => 'root',
+            'password' => 'root',
+            'charset'  => 'utf8',
+            'database' => 'test',
+            'poolMin'  => '5',
+            'clearTime'=> '60000'
+        ];
+        $this->server->MysqlPool = new MysqlPool($server,$config);
     }
 
     public function onRequest($request, $response){
-        /**
-         * Demo->Db->Query
-         * 在Query中调用server里边的pool
-         */
-//        $rs =Db::name('test')
-//            ->field('id')
-//            ->fetchSql()
-//            ->select();
-//        var_dump($rs);
-        $db = new Query('222');
+
+        $data = [
+            'use_nub'=>'8'
+        ];
+        $rs = Db::init($this->server)
+            ->name('tt')
+            ->where(['id'=>'1'])
+            ->delete();
+        var_dump($rs);
+
         $response->end('');
     }
 

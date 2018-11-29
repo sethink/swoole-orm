@@ -9,9 +9,9 @@ class Builder
     // SQL表达式
     protected $selectSql = 'SELECT%DISTINCT% %FIELD% FROM %TABLE%%FORCE%%JOIN%%WHERE%%GROUP%%HAVING%%UNION%%ORDER%%LIMIT%%LOCK%%COMMENT%';
 
-    protected $insertSql = '%INSERT% INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
+    protected $insertSql = 'INSERT INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
 
-    protected $insertAllSql = '%INSERT% INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
+//    protected $insertAllSql = '%INSERT% INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
 
     protected $updateSql = 'UPDATE %TABLE% SET %SET% %JOIN% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
 
@@ -23,117 +23,200 @@ class Builder
     }
 
 
-    public function select($options){
+    public function select($options)
+    {
         $sql = str_replace(
             ['%TABLE%', '%DISTINCT%', '%FIELD%', '%JOIN%', '%WHERE%', '%GROUP%', '%HAVING%', '%ORDER%', '%LIMIT%', '%UNION%', '%LOCK%', '%COMMENT%', '%FORCE%'],
             [
                 $this->parseTable($options['table']),
                 $this->parseDistinct($options['distinct']),
                 $this->parseField($options['field']),
+                '',
                 //                $this->parseJoin($options['join']),
                 $this->parseWhere($options['where']),
                 $this->parseGroup($options['group']),
                 $this->parseHaving($options['having']),
                 $this->parseOrder($options['order']),
                 $this->parseLimit($options['limit']),
+                '',
                 //                $this->parseUnion($options['union']),
+                '',
                 //                $this->parseLock($options['lock']),
+                '',
                 //                $this->parseComment($options['comment']),
+                '',
                 //                $this->parseForce($options['force']),
             ],
             $this->selectSql);
 
-        $result = [
-            'sql'=>$sql,
-            'sethinkBind'=>$this->sethinkBind
+        return [
+            'sql'         => $sql,
+            'sethinkBind' => $this->sethinkBind
         ];
-        return $result;
     }
 
-    public function insert($options){
+    public function insert($options)
+    {
         // 分析并处理数据
         $data = $options['data'];
         if (empty($data)) {
             return '';
         }
 
-        if (count($data) == count($data, 1)) {
-            $fields = $values = '';
-            foreach ($data as $k=>$v){
-                $fields .= "`{$k}`,";
-                $values .= "'{$v}',";
-            }
-            $fields = rtrim($fields,',');
-            $values = rtrim($values,',');
 
-            return str_replace(
-                ['%INSERT%', '%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
+        if (count($data) == count($data, 1)) {  //单条数据添加
+            $fields = $values = '';
+            foreach ($data as $k => $v) {
+                $fields              .= "`{$k}`,";
+                $values              .= "?,";
+                $this->sethinkBind[] = $v;
+            }
+            $fields = rtrim($fields, ',');
+            $values = rtrim($values, ',');
+
+            $sql = str_replace(
+                ['%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
                 [
-                    'INSERT',
                     $this->parseTable($options['table']),
                     $fields,
                     $values,
-//                    $this->parseComment($options['comment']),
+                    ''
+                    //                    $this->parseComment($options['comment']),
                 ],
                 $this->insertSql);
-        } else {
-            $fields = $values = '';
-//            foreach ()
+
+            return [
+                'sql'         => $sql,
+                'sethinkBind' => $this->sethinkBind
+            ];
+        } else {    //多条数据添加
+
         }
 
-
+        return false;
     }
 
 
-    protected function parseTable($tableName){
+    public function update($options)
+    {
+        $data = $options['data'];
+
+        if (empty($data)) {
+            return '';
+        }
+
+        $set = '';
+        foreach ($data as $k => $v) {
+            $set                 .= "`{$k}`=?,";
+            $this->sethinkBind[] = $v;
+        }
+        $set = rtrim($set, ',');
+
+        $sql = str_replace(
+            ['%TABLE%', '%SET%', '%JOIN%', '%WHERE%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%'],
+            [
+                $this->parseTable($options['table']),
+                $set,
+                '',
+                //                $this->parseJoin($options['join']),
+                $this->parseWhere($options['where']),
+                $this->parseOrder($options['order']),
+                $this->parseLimit($options['limit']),
+                '',
+                //                $this->parseLock($options['lock']),
+                '',
+                //                $this->parseComment($options['comment']),
+            ],
+            $this->updateSql);
+
+        return [
+            'sql'         => $sql,
+            'sethinkBind' => $this->sethinkBind
+        ];
+    }
+
+    public function delete($options)
+    {
+        $sql = str_replace(
+            ['%TABLE%', '%USING%', '%JOIN%', '%WHERE%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%'],
+            [
+                $this->parseTable($options['table']),
+                '',
+                //                !empty($options['using']) ? ' USING ' . $this->parseTable($options['using']) . ' ' : '',
+                '',
+                //                $this->parseJoin($options['join']),
+                $this->parseWhere($options['where']),
+                $this->parseOrder($options['order']),
+                $this->parseLimit($options['limit']),
+                '',
+                //                $this->parseLock($options['lock']),
+                '',
+                //                $this->parseComment($options['comment']),
+            ],
+            $this->deleteSql);
+        return [
+            'sql'=>$sql,
+            'sethinkBind' => $this->sethinkBind
+        ];
+    }
+
+
+    protected function parseTable($tableName)
+    {
         return "`$tableName`";
     }
 
-    protected function parseDistinct($distinct){
+    protected function parseDistinct($distinct)
+    {
         return !empty($distinct) ? ' DISTINCT ' : '';
     }
 
-    protected function parseOrder($order){
+    protected function parseOrder($order)
+    {
         $orderStr = '';
-        foreach ($order as $v){
-            if(is_array($v)){
-                foreach ($v as $kk=>$vv){
-                    $orderStr .= "`{$kk}` ".strtoupper($vv).',';
+        foreach ($order as $v) {
+            if (is_array($v)) {
+                foreach ($v as $kk => $vv) {
+                    $orderStr .= "`{$kk}` " . strtoupper($vv) . ',';
                 }
-            }else{
+            } else {
                 $orderStr .= "`{$v}` ASC,";
             }
         }
-        $orderStr = rtrim($orderStr,',');
+        $orderStr = rtrim($orderStr, ',');
         return empty($orderStr) ? '' : ' ORDER BY ' . $orderStr;
     }
 
-    protected function parseGroup($group){
+    protected function parseGroup($group)
+    {
         return empty($group) ? '' : " GROUP BY `{$group}`";
     }
 
-    protected function parseHaving($having){
-        return empty($having) ? '' : ' HAVING ' . $having ;
+    protected function parseHaving($having)
+    {
+        return empty($having) ? '' : ' HAVING ' . $having;
     }
 
 
-    protected function parseField($fields){
+    protected function parseField($fields)
+    {
         $fieldsStr = '';
-        if(is_array($fields) && count($fields) > 0){
-            foreach ($fields as $v){
+        if (is_array($fields) && count($fields) > 0) {
+            foreach ($fields as $v) {
                 $fieldsStr .= "`{$v}`,";
             }
-            $fieldsStr = rtrim($fieldsStr,',');
-        }else{
+            $fieldsStr = rtrim($fieldsStr, ',');
+        } else {
             $fieldsStr .= '*';
         }
         return $fieldsStr;
     }
 
-    protected function whereExp($k,$v){
+    protected function whereExp($k, $v)
+    {
         $v[0] = strtoupper($v[0]);
 
-        switch ($v[0]){
+        switch ($v[0]) {
             case '=':
             case '<>':
             case '>':
@@ -142,28 +225,28 @@ class Builder
             case '<=':
             case 'LIKE':
             case 'NOT LIKE':
-                return $this->parseCompare($k,$v);
+                return $this->parseCompare($k, $v);
                 break;
             case 'IN':
             case 'NOT IN':
-                return $this->parseIn($k,$v);
+                return $this->parseIn($k, $v);
                 break;
         }
 
         return false;
     }
 
-    protected function parseWhere($where){
+    protected function parseWhere($where)
+    {
         $whereStr = '';
         foreach ($where as $k => $v) {
             if (is_array($v)) {
                 if (count($v) == 3 && strtoupper($v[2]) == 'OR') {
                     $whereStr = rtrim($whereStr, " AND ") . ' OR ';
                 }
-                $whereStr .= $this->whereExp($k,$v);
+                $whereStr .= $this->whereExp($k, $v);
             } else {
-//                $whereStr .= "(`{$k}` = '{$v}')";
-                $whereStr .= "(`{$k}` = ?)";
+                $whereStr            .= "(`{$k}` = ?)";
                 $this->sethinkBind[] = $v;
             }
 
@@ -174,34 +257,36 @@ class Builder
     }
 
 
-    protected function parseCompare($k,$v){
-//        $whereStr = "(`{$k}` {$v[0]} '{$v[1]}')";
-        $whereStr = "(`{$k}` {$v[0]} ?)";
+    protected function parseCompare($k, $v)
+    {
+        $whereStr            = "(`{$k}` {$v[0]} ?)";
         $this->sethinkBind[] = $v[1];
         return $whereStr;
     }
 
-    protected function parseIn($k,$v){
+    protected function parseIn($k, $v)
+    {
         $whereStr = '';
 
         $value_tmp = '';
-        foreach ($v[1] as $vv){
-//            $value_tmp .= "'{$vv}',";
+        foreach ($v[1] as $vv) {
             $this->sethinkBind[] = $vv;
-            $value_tmp .= "?,";
+            $value_tmp           .= "?,";
         }
-        if(strlen($value_tmp) > 0){
-            $value_tmp = rtrim($value_tmp,',');
-            $value = "($value_tmp)";
-            $whereStr .= "(`{$k}` {$v[0]} {$value})";
+        if (strlen($value_tmp) > 0) {
+            $value_tmp = rtrim($value_tmp, ',');
+            $value     = "($value_tmp)";
+            $whereStr  .= "(`{$k}` {$v[0]} {$value})";
         }
 
         return $whereStr;
     }
 
-    protected function parseLimit($limit){
+    protected function parseLimit($limit)
+    {
         return (!empty($limit) && false === strpos($limit, '(')) ? ' LIMIT ' . $limit . ' ' : '';
     }
+
 
     public function __destruct()
     {
