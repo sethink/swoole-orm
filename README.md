@@ -289,6 +289,6 @@ $data为一维数组
 ```php
 <?php
     
-    $sql = 'select * from `user_info`';
-    Db::query($sql);
+$sql = 'select * from `user_info`';
+Db::query($sql);
 ```
