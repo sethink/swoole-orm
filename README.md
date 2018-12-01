@@ -5,8 +5,10 @@
 
 # 基本使用
 ## 查询
+```php
 Db::init($this->server)
     ->name('test)
     ->field('id,username,info')
     ->where(['username'=>'sethink','password'=>'sethink'])
     ->find();
+```
