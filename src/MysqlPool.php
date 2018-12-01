@@ -1,4 +1,5 @@
 <?php
+
 namespace sethink\swooleOrm;
 
 use Swoole;
@@ -8,6 +9,8 @@ class MysqlPool
     protected $server;
 
     protected $available = true;
+
+    protected $addPoolTime = 0;
 
     protected $config = [
         //服务器地址
@@ -29,10 +32,10 @@ class MysqlPool
     ];
 
 
-    public function __construct($server,$config)
+    public function __construct($server, $config)
     {
-        $this->server = $server;
-        $this->config = array_merge($this->config, $config);
+        $this->server       = $server;
+        $this->config       = array_merge($this->config, $config);
         $this->server->pool = new \SplQueue();
 
         $this->clearTimer();
@@ -48,7 +51,7 @@ class MysqlPool
     {
         //有空闲连接且连接池处于可用状态
         if ($this->available && count($this->server->pool) > 0) {
-            $mysql  = $this->server->pool->shift();
+            $mysql = $this->server->pool->shift();
             return $mysql;
         }
 
@@ -63,16 +66,20 @@ class MysqlPool
             'charset'  => $this->config['charset'],
             'database' => $this->config['database']
         ]);
-        if($res){
+
+        $this->addPoolTime = time() + 30;
+
+        if ($res) {
             return $mysql;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function clearTimer(){
+    public function clearTimer()
+    {
         $this->server->tick($this->config['clearTime'], function () {
-            if($this->server->pool->count() > $this->config['poolMin']){
+            if ($this->server->pool->count() > $this->config['poolMin'] && $this->addPoolTime > time()) {
                 $this->server->pool->shift();
             }
         });

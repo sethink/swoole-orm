@@ -58,11 +58,11 @@ class Query
         return $this;
     }
 
-
-    public function alias()
-    {
-
-    }
+    //暂未实现
+//    public function alias()
+//    {
+//
+//    }
 
 
     /**
@@ -121,10 +121,11 @@ class Query
     }
 
 
-    public function join()
-    {
-
-    }
+    //暂未实现
+//    public function join()
+//    {
+//
+//    }
 
 
     /**
