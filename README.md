@@ -84,7 +84,7 @@ new Demo($MysqlPool);
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username,info')
     ->where(['username'=>'sethink','password'=>'sethink'])
@@ -95,7 +95,7 @@ Db::init($this->server)
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('info')
     ->field('id,username,password,info')
     ->select();
@@ -115,7 +115,7 @@ $data = [
     'info'     => 'ceshi2'
 ];
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->insert($data);
 ```    
@@ -138,7 +138,7 @@ $data = [
     ]
 ];
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->insertAll($data);
 ```
@@ -148,7 +148,7 @@ Db::init($this->server)
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->where(['username'=>'sethink4'])
     ->update(['password'=>'sethink4-4']);
@@ -159,7 +159,7 @@ Db::init($this->server)
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->where(['username'=>'sethink4'])
     ->delete();
@@ -185,7 +185,7 @@ $order为一维数组时
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->order(['id'=>'desc'])
@@ -196,7 +196,7 @@ $order为二维数组时
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->order([['id'=>'desc'],['info'=>'asc']])
@@ -210,7 +210,7 @@ group by分组  --  字符串
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->group('info')
@@ -225,7 +225,7 @@ Db::init($this->server)
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->group('info')
@@ -242,7 +242,7 @@ $distinct为bool值
 ```php
 <?php
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->distinct(true)
@@ -257,7 +257,7 @@ Db::init($this->server)
 <?php
 
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->fetchSql()
@@ -292,7 +292,7 @@ $where = [
 
 
 
-Db::init($this->server)
+Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
     ->where($where)
@@ -328,5 +328,5 @@ $data为一维数组
 <?php
     
 $sql = 'select * from `user_info`';
-Db::init($this->server)->query($sql);
+Db::init($this->MysqlPool)->query($sql);
 ```
