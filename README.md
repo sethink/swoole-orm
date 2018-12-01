@@ -17,16 +17,16 @@ $config = [
     //端口
     'port'      => 3306,
     //用户名
-    'user'      => '',
+    'user'      => 'root',
     //密码
-    'password'  => '',
+    'password'  => 'root',
     //数据库编码，默认为utf8
     'charset'   => 'utf8',
     //数据库名
-    'database'  => '',
+    'database'  => 'test',
     //空闲时，队列中保存的最大链接，默认为5
     'poolMin'   => '5',
-    //清除队列空闲链接的定时器，默认60s
+    //清除队列空闲链接的定时器，默认60s,单位为ms
     'clearTime' => '60000'
 ];
 $this->server->MysqlPool = new MysqlPool($server,$config);
