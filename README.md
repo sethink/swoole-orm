@@ -14,7 +14,7 @@ Db::init($this->server)
     ->find();
 ```
 ### 查询多条
-```
+```php
 Db::init($this->server)
     ->name('info')
     ->field('id,username,password,info')
