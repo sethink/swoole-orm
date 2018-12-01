@@ -91,3 +91,21 @@ Db::init($this->server)
     ->name('user_info')
     ->insertAll($data);
 ```
+
+## 更新数据
+
+```php
+Db::init($this->server)
+    ->name('user_info')
+    ->where(['username'=>'sethink4'])
+    ->update(['password'=>'sethink4-4']);
+```
+
+## 删除数据
+
+```php
+Db::init($this->server)
+    ->name('user_info')
+    ->where(['username'=>'sethink4'])
+    ->delete();
+```
