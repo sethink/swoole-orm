@@ -6,39 +6,77 @@
 >composer require sethink/swoole-orm
 ```
 
-# 基本使用
-
-## 初始化
-
-在onWorkerStart事件回调中初始化
+# 入门例子
 ```php
 <?php
+namespace Demo;
 
 include_once "./vendor/autoload.php";
 
-//配置mysql
-$config = [
-    //服务器地址
+use sethink\swooleOrm\Db;
+use sethink\swooleOrm\MysqlPool;
+use swoole;
+
+class Demo
+{
+    protected $server;
+
+    protected $MysqlPool;
+
+    public function __construct($MysqlPool)
+    {
+        $this->MysqlPool = $MysqlPool;
+
+        $this->server = new Swoole\Http\Server("0.0.0.0", 9501);
+        $this->server->set(array(
+            'worker_num'    => 4,
+            'max_request'   => 50000,
+            'reload_async'  => true,
+            'max_wait_time' => 30,
+        ));
+
+        $this->server->on('Start', function ($server) {});
+        $this->server->on('ManagerStart', function ($server) {});
+        $this->server->on('WorkerStart', array($this, 'onWorkerStart'));
+        $this->server->on('WorkerStop', function ($server, $worker_id) {});
+        $this->server->on('open', function ($server, $request) {});
+        $this->server->on('Request', array($this, 'onRequest'));
+        $this->server->start();
+    }
+
+    public function onWorkerStart($server, $worker_id)
+    {
+        //在其中的一个woker进程中执行定时器
+        if($worker_id == 0){
+            $this->MysqlPool->clearTimer($server);
+        }
+    }
+
+    public function onRequest($request, $response)
+    {
+        $rs = Db::init($this->MysqlPool)
+            ->name('tt')
+            ->select();
+        var_dump($rs);
+    }
+}
+
+$config    = [
     'host'      => '127.0.0.1',
-    //端口
     'port'      => 3306,
-    //用户名
     'user'      => 'root',
-    //密码
     'password'  => 'root',
-    //数据库编码，默认为utf8
     'charset'   => 'utf8',
-    //数据库名
     'database'  => 'test',
-    //空闲时，队列中保存的最大链接，默认为5
     'poolMin'   => '5',
-    //清除队列空闲链接的定时器，默认60s,单位为ms
     'clearTime' => '60000'
 ];
+$MysqlPool = new MysqlPool($config);
 
-//注意：此句必须命令为MysqlPool！ 此句必须命令为MysqlPool！ 此句必须命令为MysqlPool！
-$this->server->MysqlPool = new MysqlPool($server,$config);
+new Demo($MysqlPool);
 ```
+
+# 基本使用
 
 ## 查询
 
