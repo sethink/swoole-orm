@@ -59,12 +59,19 @@ class Demo
     public function onRequest($request, $response){
 
         $data = [
-            'use_nub'=>'8'
+            [
+                'username'=>'jack',
+                'sex'=>'male'
+            ],
+            [
+                'username'=>'tom',
+                'age'=>'12'
+            ]
         ];
         $rs = Db::init($this->server)
             ->name('tt')
-            ->where(['id'=>'1'])
-            ->delete();
+            ->fetchSql()
+            ->insertAll($data);
         var_dump($rs);
 
         $response->end('');

@@ -11,16 +11,11 @@ class Builder
 
     protected $insertSql = 'INSERT INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
 
-//    protected $insertAllSql = '%INSERT% INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
+    protected $insertAllSql = 'INSERT INTO %TABLE% (%FIELD%) VALUES %DATA% %COMMENT%';
 
     protected $updateSql = 'UPDATE %TABLE% SET %SET% %JOIN% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
 
     protected $deleteSql = 'DELETE FROM %TABLE% %USING% %JOIN% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
-
-
-    public function __construct()
-    {
-    }
 
 
     public function select($options)
@@ -58,55 +53,96 @@ class Builder
     public function insert($options)
     {
         // 分析并处理数据
-        $data = $options['data'];
-        if (empty($data)) {
+        if (empty($options['data'])) {
             return '';
         }
 
+        $fields = $values = '';
+        foreach ($options['data'] as $k => $v) {
+            $fields .= "`{$k}`,";
+            $values .= "?,";
 
-        if (count($data) == count($data, 1)) {  //单条数据添加
-            $fields = $values = '';
-            foreach ($data as $k => $v) {
-                $fields              .= "`{$k}`,";
-                $values              .= "?,";
-                $this->sethinkBind[] = $v;
-            }
-            $fields = rtrim($fields, ',');
-            $values = rtrim($values, ',');
+            $this->sethinkBind[] = $v;
+        }
+        $fields = rtrim($fields, ',');
+        $values = rtrim($values, ',');
 
-            $sql = str_replace(
-                ['%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
-                [
-                    $this->parseTable($options['table']),
-                    $fields,
-                    $values,
-                    ''
-                    //                    $this->parseComment($options['comment']),
-                ],
-                $this->insertSql);
+        $sql = str_replace(
+            ['%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
+            [
+                $this->parseTable($options['table']),
+                $fields,
+                $values,
+                ''
+                //                    $this->parseComment($options['comment']),
+            ],
+            $this->insertSql);
 
-            return [
-                'sql'         => $sql,
-                'sethinkBind' => $this->sethinkBind
-            ];
-        } else {    //多条数据添加
+        return [
+            'sql'         => $sql,
+            'sethinkBind' => $this->sethinkBind
+        ];
+    }
 
+    public function insertAll($options)
+    {
+        if (empty($options['data'])) {
+            return '';
         }
 
-        return false;
+        $keys = [];
+        foreach ($options['data'] as $v) {
+            $keys = array_merge($keys, array_keys($v));
+        }
+        $keys = array_merge(array_unique($keys));
+
+        $fields = '';
+        foreach ($keys as $v) {
+            $fields .= "`{$v}`,";
+        }
+        $fields = rtrim($fields, ',');
+
+        $data = '';
+        foreach ($options['data'] as $v) {
+            $data .= '(';
+            foreach ($keys as $vv) {
+                if (isset($v[$vv])) {
+                    $this->sethinkBind[] = $v[$vv];
+                } else {
+                    $this->sethinkBind[] = '';
+                }
+                $data .= '?,';
+            }
+            $data = rtrim($data, ',') . '),';
+        }
+        $data = rtrim($data, ',');
+
+        $sql = str_replace(
+            ['%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
+            [
+                $this->parseTable($options['table']),
+                $fields,
+                $data,
+                ''
+                //                $this->parseComment($options['comment']),
+            ],
+            $this->insertAllSql);
+
+        return [
+            'sql'         => $sql,
+            'sethinkBind' => $this->sethinkBind
+        ];
     }
 
 
     public function update($options)
     {
-        $data = $options['data'];
-
-        if (empty($data)) {
+        if (empty($options['data'])) {
             return '';
         }
 
         $set = '';
-        foreach ($data as $k => $v) {
+        foreach ($options['data'] as $k => $v) {
             $set                 .= "`{$k}`=?,";
             $this->sethinkBind[] = $v;
         }
@@ -155,7 +191,7 @@ class Builder
             ],
             $this->deleteSql);
         return [
-            'sql'=>$sql,
+            'sql'         => $sql,
             'sethinkBind' => $this->sethinkBind
         ];
     }

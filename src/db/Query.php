@@ -221,6 +221,18 @@ class Query
     }
 
 
+    public function insertAll($data = []){
+        $this->options['data'] = $data;
+
+        $result = $this->builder->insertAll($this->options);
+
+        if (!empty($this->options['fetch_sql'])) {
+            return $this->getRealSql($result);
+        }
+        return $this->query($result);
+    }
+
+
     public function update($data = [])
     {
         $this->options['data'] = $data;
