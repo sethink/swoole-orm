@@ -85,12 +85,12 @@ class Query
     /**
      * @order by
      *
-     * @param array $Array
+     * @param array $order
      * @return $this
      */
-    public function order($Array = [])
+    public function order($order = [])
     {
-        $this->options['order'] = $Array;
+        $this->options['order'] = $order;
         return $this;
     }
 
@@ -270,14 +270,24 @@ class Query
         back:
 
         $mysql = $this->server->MysqlPool->get();
-        $stmt = $mysql->prepare($result['sql']);
 
-        if($stmt){
-            $rs = $stmt->execute($result['sethinkBind']);
-            $this->server->MysqlPool->put($mysql);
-            return $rs;
-        }elseif($mysql->errno == 2006 or $mysql->errno == 2013){
-            goto back;
+        if (is_string($result)) {
+            $rs = $mysql->query($result);
+            if ($mysql->errno == 2006 or $mysql->errno == 2013) {
+                goto back;
+            } else {
+                return $rs;
+            }
+        } else {
+            $stmt = $mysql->prepare($result['sql']);
+
+            if ($stmt) {
+                $rs = $stmt->execute($result['sethinkBind']);
+                $this->server->MysqlPool->put($mysql);
+                return $rs;
+            } elseif ($mysql->errno == 2006 or $mysql->errno == 2013) {
+                goto back;
+            }
         }
 
         return false;

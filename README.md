@@ -72,9 +72,9 @@ Db::init($this->server)
 <?php
 
 $data = [
-    'username'=>'sethink2',
-    'password'=>'sethink2',
-    'info'=>'ceshi2'
+    'username' => 'sethink2',
+    'password' => 'sethink2',
+    'info'     => 'ceshi2'
 ];
 
 Db::init($this->server)
@@ -89,14 +89,14 @@ Db::init($this->server)
 
 $data = [
     [
-        'username'=>'sethink3',
-        'password'=>'sethink3',
-        'info'=>'ceshi3'
+        'username' => 'sethink3',
+        'password' => 'sethink3',
+        'info'     => 'ceshi3'
     ],
     [
-        'username'=>'sethink4',
-        'password'=>'password4',
-        'info'=>'ceshi4'
+        'username' => 'sethink4',
+        'password' => 'password4',
+        'info'     => 'ceshi4'
     ]
 ];
 
@@ -139,13 +139,148 @@ $tableName为表名   --  字符串
 ### field($field)
 $field为查询的字段名   --  字符串
 
-### order($array)
-order by排序  --  数组
+### order($order)
+order by排序  --  数组(一维数组或者二维数组)
+
+例子：
+$order为一维数组时
+```php
+<?php
+
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->order(['id'=>'desc'])
+    ->select();
+```
+
+$order为二维数组时
+```php
+<?php
+
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->order([['id'=>'desc'],['info'=>'asc']])
+    ->select();
+```
+
+### group($group)
+group by分组  --  字符串
+
+例子：
+```php
+<?php
+
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->group('info')
+    ->select();
+
+```
+
+###　having($having)
+用于配置group从分组中筛选数据   --  字符串
+
+例子：
+```php
+<?php
+
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->group('info')
+    ->having('count(info) > 5')
+    ->select();
+
+```
+
+### distinct($distinct)
+数据去重
+$distinct为bool值
+
+例子：
+```php
+<?php
+
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->distinct(true)
+    ->select();
+```
+
+### fetchSql()
+获取sql语句
 
 例子：
 ```php
 <?php
 
 
-
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->fetchSql()
+    ->select();
 ```
+
+### where($whereArray)
+$whereArray为数组
+
+例子1：
+```php
+<?php
+//1、
+$where = [
+    'id'=>'1'
+];
+
+//2、
+$where = [
+    'id'=>['>',5]
+];
+
+//3、
+$where = [
+    'username'=>['LIKE','%seth%']
+];
+
+//4、
+$where = [
+    'id'=>['in',['1','5']]
+];
+
+
+
+Db::init($this->server)
+    ->name('user_info')
+    ->field('id,username')
+    ->where($where)
+    ->select();
+```
+
+### find()
+查询一条数据，返回一维数组
+
+### select()
+查询一条或多条数据，返回二维数组
+
+### insert($data)
+插入单条数据
+$data为一维数组
+
+### insertAll($data)
+插入多条数据
+$data为二维数组
+
+### update($data)
+更新数据
+$data为一维数组
+
+### delete()
+删除数据
+
+### query($sql)
+执行sql语句 --  字符串
