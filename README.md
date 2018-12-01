@@ -12,8 +12,11 @@
 
 在onWorkerStart事件回调中初始化
 ```php
+<?php
+
 include_once "./vendor/autoload.php";
 
+//配置mysql
 $config = [
     //服务器地址
     'host'      => '127.0.0.1',
@@ -33,7 +36,7 @@ $config = [
     'clearTime' => '60000'
 ];
 
-//注意：此句必须命令为MysqlPool！此句必须命令为MysqlPool！此句必须命令为MysqlPool！
+//注意：此句必须命令为MysqlPool！ 此句必须命令为MysqlPool！ 此句必须命令为MysqlPool！
 $this->server->MysqlPool = new MysqlPool($server,$config);
 ```
 
@@ -41,6 +44,8 @@ $this->server->MysqlPool = new MysqlPool($server,$config);
 
 ### 查询单条
 ```php
+<?php
+
 Db::init($this->server)
     ->name('user_info')
     ->field('id,username,info')
@@ -50,6 +55,8 @@ Db::init($this->server)
 
 ### 查询多条
 ```php
+<?php
+
 Db::init($this->server)
     ->name('info')
     ->field('id,username,password,info')
@@ -62,6 +69,8 @@ Db::init($this->server)
 ### 添加单条数据
 
 ```php
+<?php
+
 $data = [
     'username'=>'sethink2',
     'password'=>'sethink2',
@@ -76,6 +85,8 @@ Db::init($this->server)
 ### 批量添加
 
 ```php
+<?php
+
 $data = [
     [
         'username'=>'sethink3',
@@ -97,6 +108,8 @@ Db::init($this->server)
 ## 更新数据
 
 ```php
+<?php
+
 Db::init($this->server)
     ->name('user_info')
     ->where(['username'=>'sethink4'])
@@ -106,8 +119,33 @@ Db::init($this->server)
 ## 删除数据
 
 ```php
+<?php
+
 Db::init($this->server)
     ->name('user_info')
     ->where(['username'=>'sethink4'])
     ->delete();
+```
+
+
+## 详解
+
+### init($server)
+$server为swoole服务器
+
+### name($tableName)
+$tableName为表名   --  字符串
+
+### field($field)
+$field为查询的字段名   --  字符串
+
+### order($array)
+order by排序  --  数组
+
+例子：
+```php
+<?php
+
+
+
 ```
