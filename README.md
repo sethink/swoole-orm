@@ -7,17 +7,27 @@
 
 ## 初始化
 
-在onWorkerStart事件回调中
+在onWorkerStart事件回调中初始化
 ```php
+include_once "./vendor/autoload.php";
+
 $config = [
-    'host'     => '127.0.0.1',
-    'port'     => 3306,
-    'user'     => 'root',
-    'password' => 'root',
-    'charset'  => 'utf8',
-    'database' => 'test',
-    'poolMin'  => '5',
-    'clearTime'=> '60000'
+    //服务器地址
+    'host'      => '127.0.0.1',
+    //端口
+    'port'      => 3306,
+    //用户名
+    'user'      => '',
+    //密码
+    'password'  => '',
+    //数据库编码，默认为utf8
+    'charset'   => 'utf8',
+    //数据库名
+    'database'  => '',
+    //空闲时，队列中保存的最大链接，默认为5
+    'poolMin'   => '5',
+    //清除队列空闲链接的定时器，默认60s
+    'clearTime' => '60000'
 ];
 $this->server->MysqlPool = new MysqlPool($server,$config);
 ```
