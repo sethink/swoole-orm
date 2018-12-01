@@ -290,5 +290,5 @@ $data为一维数组
 <?php
     
 $sql = 'select * from `user_info`';
-Db::query($sql);
+Db::init($this->server)->query($sql);
 ```
