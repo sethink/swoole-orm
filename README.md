@@ -32,6 +32,8 @@ $config = [
     //清除队列空闲链接的定时器，默认60s,单位为ms
     'clearTime' => '60000'
 ];
+
+//注意：此句必须命令为MysqlPool！此句必须命令为MysqlPool！此句必须命令为MysqlPool！
 $this->server->MysqlPool = new MysqlPool($server,$config);
 ```
 
