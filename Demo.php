@@ -57,24 +57,28 @@ class Demo
     }
 
     public function onRequest($request, $response){
+//        $sql = 'select * from `tt`';
+//        $rs = Db::init($this->server)
+//            ->query($sql);
+//        var_dump($rs);
 
-        $data = [
-            [
-                'username'=>'jack',
-                'sex'=>'male'
-            ],
-            [
-                'username'=>'tom',
-                'age'=>'12'
-            ]
-        ];
-        $rs = Db::init($this->server)
-            ->name('tt')
-            ->fetchSql()
-            ->insertAll($data);
-        var_dump($rs);
-
-        $response->end('');
+//        $data = [
+//            [
+//                'username'=>'jack',
+//                'sex'=>'male'
+//            ],
+//            [
+//                'username'=>'tom',
+//                'age'=>'12'
+//            ]
+//        ];
+//        $rs = Db::init($this->server)
+//            ->name('tt')
+//            ->fetchSql()
+//            ->insertAll($data);
+//        var_dump($rs);
+//
+//        $response->end('');
     }
 
 }

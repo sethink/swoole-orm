@@ -284,3 +284,11 @@ $data为一维数组
 
 ### query($sql)
 执行sql语句 --  字符串
+
+例子：
+```php
+<?php
+    
+    $sql = 'select * from `user_info`';
+    Db::query($sql);
+```
