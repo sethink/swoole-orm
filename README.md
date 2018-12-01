@@ -1,7 +1,9 @@
 # swoole-orm
 
 # 引入
+```
 >composer require sethink/swoole-orm
+```
 
 # 基本使用
 
