@@ -5,7 +5,7 @@ namespace sethink\swooleOrm\db;
 class Query
 {
     //server
-    protected $server;
+    protected $MysqlPool;
     //sql生成器
     protected $builder;
 
@@ -37,11 +37,11 @@ class Query
     /**
      * @初始化
      *
-     * @param $server
+     * @param $MysqlPool
      * @return $this
      */
-    public function init($server){
-        $this->server = $server;
+    public function init($MysqlPool){
+        $this->MysqlPool = $MysqlPool;
         return $this;
     }
 
@@ -269,13 +269,14 @@ class Query
     {
         back:
 
-        $mysql = $this->server->MysqlPool->get();
+        $mysql = $this->MysqlPool->get();
 
         if (is_string($result)) {
             $rs = $mysql->query($result);
             if ($mysql->errno == 2006 or $mysql->errno == 2013) {
                 goto back;
             } else {
+                $this->MysqlPool->put($mysql);
                 return $rs;
             }
         } else {
@@ -283,7 +284,8 @@ class Query
 
             if ($stmt) {
                 $rs = $stmt->execute($result['sethinkBind']);
-                $this->server->MysqlPool->put($mysql);
+
+                $this->MysqlPool->put($mysql);
                 return $rs;
             } elseif ($mysql->errno == 2006 or $mysql->errno == 2013) {
                 goto back;
@@ -315,7 +317,7 @@ class Query
     public function __destruct()
     {
         // TODO: Implement __destruct() method.
-        unset($this->server);
+        unset($this->MysqlPool);
         unset($this->builder);
         unset($this->options);
     }

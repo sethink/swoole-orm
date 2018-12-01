@@ -6,11 +6,9 @@ use Swoole;
 
 class MysqlPool
 {
-    protected $server;
-
     protected $available = true;
 
-    protected $addPoolTime = 0;
+    protected $addPoolTime = '';
 
     protected $config = [
         //服务器地址
@@ -32,26 +30,24 @@ class MysqlPool
     ];
 
 
-    public function __construct($server, $config)
-    {
-        $this->server       = $server;
-        $this->config       = array_merge($this->config, $config);
-        $this->server->pool = new \SplQueue();
 
-        $this->clearTimer();
+    public function __construct($config)
+    {
+        $this->config = array_merge($this->config, $config);
+        $this->pool = new \SplQueue();
     }
 
 
     public function put($mysql)
     {
-        $this->server->pool->push($mysql);
+        $this->pool->push($mysql);
     }
 
     public function get()
     {
         //有空闲连接且连接池处于可用状态
-        if ($this->available && count($this->server->pool) > 0) {
-            $mysql = $this->server->pool->shift();
+        if ($this->available && count($this->pool) > 0) {
+            $mysql = $this->pool->shift();
             return $mysql;
         }
 
@@ -76,11 +72,11 @@ class MysqlPool
         }
     }
 
-    public function clearTimer()
+    public function clearTimer($server)
     {
-        $this->server->tick($this->config['clearTime'], function () {
-            if ($this->server->pool->count() > $this->config['poolMin'] && $this->addPoolTime > time()) {
-                $this->server->pool->shift();
+        $server->tick($this->config['clearTime'], function () {
+            if ($this->pool->count() > $this->config['poolMin'] && $this->addPoolTime > time()) {
+                $this->pool->shift();
             }
         });
     }
@@ -89,8 +85,8 @@ class MysqlPool
     {
         // 连接池销毁, 置不可用状态, 防止新的客户端进入常驻连接池, 导致服务器无法平滑退出
         $this->available = false;
-        while (!$this->server->pool->isEmpty()) {
-            $this->server->pool->shift();
+        while (!$this->pool->isEmpty()) {
+            $this->pool->shift();
         }
     }
 
