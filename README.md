@@ -53,3 +53,41 @@ Db::init($this->server)
     ->field('id,username,password,info')
     ->select();
 ```
+
+
+## 添加
+
+### 添加单条数据
+
+```php
+$data = [
+    'username'=>'sethink2',
+    'password'=>'sethink2',
+    'info'=>'ceshi2'
+];
+
+Db::init($this->server)
+    ->name('user_info')
+    ->insert($data);
+```    
+
+### 批量添加
+
+```php
+$data = [
+    [
+        'username'=>'sethink3',
+        'password'=>'sethink3',
+        'info'=>'ceshi3'
+    ],
+    [
+        'username'=>'sethink4',
+        'password'=>'password4',
+        'info'=>'ceshi4'
+    ]
+];
+
+Db::init($this->server)
+    ->name('user_info')
+    ->insertAll($data);
+```
