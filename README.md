@@ -1,5 +1,5 @@
 # swoole-orm
-基于swoole的mysql协程，简单封装
+基于swoole的mysql协程连接池，简单封装
 
 # 引入
 ```
