@@ -175,13 +175,13 @@ class Query
     {
         $this->options['limit'] = 1;
 
-        $sql                    = $this->builder->select($this->options);
+        $result = $this->builder->select($this->options);
         $this->options['limit'] = '';
 
         if (!empty($this->options['fetch_sql'])) {
-            return $this->getRealSql($sql);
+            return $this->getRealSql($result);
         }
-        return $sql;
+        return $this->query($result);
     }
 
 
