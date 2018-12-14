@@ -1,6 +1,8 @@
 # swoole-orm
+```
 基于swoole的mysql协程连接池，简单封装。  
 实现多个协程间共用同一个协程客户端
+```
 
 # 引入
 ```
@@ -170,16 +172,24 @@ Db::init($this->MysqlPool)
 ## 详解
 
 ### init($server)
+```
 $server为swoole服务器
+```
 
 ### name($tableName)
+```
 $tableName为表名   --  字符串
+```
 
 ### field($field)
+```
 $field为查询的字段名   --  字符串
+```
 
 ### order($order)
+```
 order by排序  --  数组(一维数组或者二维数组)
+```
 
 例子：
 $order为一维数组时
@@ -205,7 +215,9 @@ Db::init($this->MysqlPool)
 ```
 
 ### group($group)
+```
 group by分组  --  字符串
+```
 
 例子：
 ```php
@@ -220,7 +232,9 @@ Db::init($this->MysqlPool)
 ```
 
 ###　having($having)
+```
 用于配置group从分组中筛选数据   --  字符串
+```
 
 例子：
 ```php
@@ -236,8 +250,10 @@ Db::init($this->MysqlPool)
 ```
 
 ### distinct($distinct)
+```
 数据去重
 $distinct为bool值
+```
 
 例子：
 ```php
@@ -251,7 +267,9 @@ Db::init($this->MysqlPool)
 ```
 
 ### fetchSql()
+```
 获取sql语句
+```
 
 例子：
 ```php
@@ -266,7 +284,9 @@ Db::init($this->MysqlPool)
 ```
 
 ### where($whereArray)
+```
 $whereArray为数组
+```
 
 例子1：
 ```php
@@ -301,28 +321,42 @@ Db::init($this->MysqlPool)
 ```
 
 ### find()
+```
 查询一条数据，返回一维数组
+```
 
 ### select()
+```
 查询一条或多条数据，返回二维数组
+```
 
 ### insert($data)
+```
 插入单条数据
 $data为一维数组
+```
 
 ### insertAll($data)
+```
 插入多条数据
 $data为二维数组
+```
 
 ### update($data)
+```
 更新数据
 $data为一维数组
+```
 
 ### delete()
+```
 删除数据
+```
 
 ### query($sql)
+```
 执行sql语句 --  字符串
+```
 
 例子：
 ```php
