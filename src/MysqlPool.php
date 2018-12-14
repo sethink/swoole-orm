@@ -40,6 +40,10 @@ class MysqlPool
 
     public function __construct($config)
     {
+        if ($config['clearAll'] < $config['clearTime']) {
+            $config['clearAll'] = $config['clearTime'];
+        }
+
         $this->config = array_merge($this->config, $config);
         $this->pool   = new Swoole\Coroutine\Channel($this->config['poolMax']);
     }
