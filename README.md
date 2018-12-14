@@ -1,5 +1,6 @@
 # swoole-orm
-基于swoole的mysql协程连接池，简单封装
+基于swoole的mysql协程连接池，简单封装。
+实现多个协程间共用同一个协程客户端
 
 # 引入
 ```
