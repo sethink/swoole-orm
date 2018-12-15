@@ -16,9 +16,8 @@ class Demo
 
     protected $MysqlPool;
 
-    public function __construct($MysqlPool)
+    public function __construct()
     {
-        $this->MysqlPool = $MysqlPool;
 
         $this->server = new Swoole\Http\Server("0.0.0.0", 9501);
         $this->server->set(array(
@@ -39,6 +38,19 @@ class Demo
 
     public function onWorkerStart($server, $worker_id)
     {
+        $config    = [
+            'host'      => '127.0.0.1',
+            'port'      => 3306,
+            'user'      => 'root',
+            'password'  => 'root',
+            'charset'   => 'utf8',
+            'database'  => 'test',
+            'poolMin'   => '5',
+            'clearTime' => '60000'
+        ];
+        $this->MysqlPool = new MysqlPool($config);
+        unset($config);
+        $this->MysqlPool-clearTimer($server);
     }
 
     public function onRequest($request, $response)
@@ -50,16 +62,6 @@ class Demo
     }
 }
 
-$config    = [
-    'host'      => '127.0.0.1',
-    'port'      => 3306,
-    'user'      => 'root',
-    'password'  => 'root',
-    'charset'   => 'utf8',
-    'database'  => 'test',
-    'poolMin'   => '5',
-    'clearTime' => '60000'
-];
-$MysqlPool = new MysqlPool($config);
 
-new Demo($MysqlPool);
+
+new Demo();
