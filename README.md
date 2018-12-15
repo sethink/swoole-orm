@@ -26,10 +26,8 @@ class Demo
 
     protected $MysqlPool;
 
-    public function __construct($MysqlPool)
+    public function __construct()
     {
-        $this->MysqlPool = $MysqlPool;
-
         $this->server = new Swoole\Http\Server("0.0.0.0", 9501);
         $this->server->set(array(
             'worker_num'    => 4,
@@ -49,10 +47,23 @@ class Demo
 
     public function onWorkerStart($server, $worker_id)
     {
-        //在其中的一个woker进程中执行定时器
-        if($worker_id == 0){
-            $this->MysqlPool->clearTimer($server);
-        }
+        $config = [
+            'host'      => '127.0.0.1', //服务器地址
+            'port'      => 3306,    //端口
+            'user'      => 'root',  //用户名
+            'password'  => 'root',  //密码
+            'charset'   => 'utf8',  //编码
+            'database'  => 'test',  //数据库名
+            'poolMin'   => 5, //空闲时，保存的最大链接，默认为5
+            'poolMax'   => 1000,    //地址池最大连接数，默认1000
+            'clearTime' => 60000, //清除空闲链接定时器，默认60秒，单位ms
+            'clearAll'  => 300000   //空闲多久清空所有连接，默认5分钟，单位ms
+        ];
+        $this->MysqlPool = new MysqlPool($config);
+        unset($config);
+        
+        //执行定时器
+        $this->MysqlPool-clearTimer($server);
     }
 
     public function onRequest($request, $response)
@@ -64,19 +75,7 @@ class Demo
     }
 }
 
-$config    = [
-    'host'      => '127.0.0.1',
-    'port'      => 3306,
-    'user'      => 'root',
-    'password'  => 'root',
-    'charset'   => 'utf8',
-    'database'  => 'test',
-    'poolMin'   => '5',
-    'clearTime' => '60000'
-];
-$MysqlPool = new MysqlPool($config);
-
-new Demo($MysqlPool);
+new Demo();
 ```
 
 # 基本使用
