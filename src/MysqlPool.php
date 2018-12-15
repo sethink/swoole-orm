@@ -40,7 +40,7 @@ class MysqlPool
 
     public function __construct($config)
     {
-        if ($config['clearAll'] < $config['clearTime']) {
+        if (isset($config['clearAll']) && $config['clearAll'] < $config['clearTime']) {
             $config['clearAll'] = $config['clearTime'];
         }
         
@@ -60,6 +60,7 @@ class MysqlPool
         if (!$this->available) {
             return false;
         }
+
 
         if ($this->pool->length() >= $this->config['poolMax']) {
             return false;

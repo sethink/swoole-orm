@@ -63,7 +63,7 @@ class Demo
         unset($config);
         
         //执行定时器
-        $this->MysqlPool-clearTimer($server);
+        $this->MysqlPool->clearTimer($server);
     }
 
     public function onRequest($request, $response)

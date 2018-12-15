@@ -45,12 +45,12 @@ class Demo
             'password'  => 'root',
             'charset'   => 'utf8',
             'database'  => 'test',
-            'poolMin'   => '5',
-            'clearTime' => '60000'
+            'poolMin'   => 5,
+            'clearTime' => 60000
         ];
         $this->MysqlPool = new MysqlPool($config);
         unset($config);
-        $this->MysqlPool-clearTimer($server);
+        $this->MysqlPool->clearTimer($server);
     }
 
     public function onRequest($request, $response)
