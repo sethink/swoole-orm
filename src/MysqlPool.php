@@ -1,4 +1,7 @@
 <?php
+/**
+ * User: sethink
+ */
 
 namespace sethink\swooleOrm;
 

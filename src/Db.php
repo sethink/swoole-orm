@@ -1,4 +1,8 @@
 <?php
+/**
+ * User: sethink
+ */
+
 namespace sethink\swooleOrm;
 
 use sethink\swooleOrm\db\Query;
