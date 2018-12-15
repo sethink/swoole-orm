@@ -265,6 +265,33 @@ Db::init($this->MysqlPool)
     ->select();
 ```
 
+### lock($state)
+```
+加锁
+```
+
+例子：
+```php
+<?php
+
+//1、传入bool值
+Db::init($this->MysqlPool)
+    ->name('user_info')
+    ->where(['id'=>1])
+    ->lock(true)
+    ->find();
+//会自动在sql语句加上FOR UPDATE
+
+//2、传入字符串
+Db::init($this->MysqlPool)
+    ->name('user_info')
+    ->where(['id'=>1])
+    ->lock('lock in share mode')
+    ->find();
+//特殊锁要求
+```
+
+
 ### fetchSql()
 ```
 获取sql语句

@@ -35,8 +35,7 @@ class Builder
                 $this->parseLimit($options['limit']),
                 '',
                 //                $this->parseUnion($options['union']),
-                '',
-                //                $this->parseLock($options['lock']),
+                $this->parseLock($options['lock']),
                 '',
                 //                $this->parseComment($options['comment']),
                 '',
@@ -158,8 +157,7 @@ class Builder
                 $this->parseWhere($options['where']),
                 $this->parseOrder($options['order']),
                 $this->parseLimit($options['limit']),
-                '',
-                //                $this->parseLock($options['lock']),
+                $this->parseLock($options['lock']),
                 '',
                 //                $this->parseComment($options['comment']),
             ],
@@ -184,8 +182,7 @@ class Builder
                 $this->parseWhere($options['where']),
                 $this->parseOrder($options['order']),
                 $this->parseLimit($options['limit']),
-                '',
-                //                $this->parseLock($options['lock']),
+                $this->parseLock($options['lock']),
                 '',
                 //                $this->parseComment($options['comment']),
             ],
@@ -321,6 +318,17 @@ class Builder
     protected function parseLimit($limit)
     {
         return (!empty($limit) && false === strpos($limit, '(')) ? ' LIMIT ' . $limit . ' ' : '';
+    }
+
+
+    protected function parseLock($lock = false)
+    {
+        if (is_bool($lock)) {
+            return $lock ? ' FOR UPDATE ' : '';
+        } elseif (is_string($lock) && !empty($lock)) {
+            return ' ' . trim($lock) . ' ';
+        }
+        return '';
     }
 
 

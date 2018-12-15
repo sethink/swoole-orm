@@ -22,6 +22,7 @@ class Query
         'group'     => '',
         'having'    => '',
         'limit'     => '',
+        'lock'      => false,
         'fetch_sql' => false,
         'data'      => [],
     ];
@@ -77,6 +78,7 @@ class Query
             return $this;
         }
         $field_array            = explode(',', $field);
+        //去重
         $this->options['field'] = array_unique($field_array);
         return $this;
     }
@@ -162,6 +164,19 @@ class Query
     public function where($whereArray = [])
     {
         $this->options['where'] = $whereArray;
+        return $this;
+    }
+
+
+    /**
+     * @lock加锁
+     *
+     * @param bool $lock
+     * @return $this
+     */
+    public function lock($lock = false)
+    {
+        $this->options['lock']   = $lock;
         return $this;
     }
 
