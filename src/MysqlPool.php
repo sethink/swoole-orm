@@ -33,15 +33,19 @@ class MysqlPool
         'poolMax'   => 1000,
         //清除空闲链接的定时器，默认60s
         'clearTime' => 60000,
-        //空闲多久清空所有连接,默认5m
-        'clearAll'  => 300000,
+        //空闲多久清空所有连接,默认300s
+        'clearAll'  => 300,
     ];
 
 
     public function __construct($config)
     {
-        if (isset($config['clearAll']) && $config['clearAll'] < $config['clearTime']) {
-            $config['clearAll'] = $config['clearTime'];
+        if (isset($config['clearAll'])) {
+            if($config['clearAll'] < $config['clearTime']){
+                $config['clearAll'] = (int)($config['clearTime']/1000);
+            }else{
+                $config['clearAll'] = (int)($config['clearAll']/1000);
+            }
         }
         
         $this->config = array_merge($this->config, $config);
@@ -95,10 +99,12 @@ class MysqlPool
 
     public function clearTimer($server)
     {
-        $server->tick($this->config['clearTime'], function () {
-            if ($this->pool->length() > $this->config['poolMin'] && time() - 30 > $this->addPoolTime) {
+        $server->tick($this->config['clearTime'], function () use ($server) {
+
+            if ($this->pool->length() > $this->config['poolMin'] && time() - 5 > $this->addPoolTime) {
                 $this->pool->pop();
             }
+
 
             if ($this->pool->length() > 0 && time() - $this->config['clearAll'] > $this->pushTime) {
                 while (!$this->pool->isEmpty()) {

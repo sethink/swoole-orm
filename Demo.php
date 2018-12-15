@@ -46,7 +46,8 @@ class Demo
             'charset'   => 'utf8',
             'database'  => 'test',
             'poolMin'   => 5,
-            'clearTime' => 60000
+            'clearTime' => 60000,
+            'clearAll'  => 300000,
         ];
         $this->MysqlPool = new MysqlPool($config);
         unset($config);
@@ -55,6 +56,7 @@ class Demo
 
     public function onRequest($request, $response)
     {
+
         $rs = Db::init($this->MysqlPool)
             ->name('tt')
             ->select();
