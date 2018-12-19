@@ -54,6 +54,7 @@ class Demo
             'password'  => 'root',  //密码
             'charset'   => 'utf8',  //编码
             'database'  => 'test',  //数据库名
+            'prefix'    => 'sethink_',  //表前缀
             'poolMin'   => 5, //空闲时，保存的最大链接，默认为5
             'poolMax'   => 1000,    //地址池最大连接数，默认1000
             'clearTime' => 60000, //清除空闲链接定时器，默认60秒，单位ms
