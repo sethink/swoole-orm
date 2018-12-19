@@ -9,14 +9,19 @@ use Swoole;
 
 class MysqlPool
 {
+    //池
     protected $pool;
 
+    //池状态
     protected $available = true;
 
+    //新建时间
     protected $addPoolTime = '';
 
+    //入池时间
     protected $pushTime = 0;
 
+    //配置
     public $config = [
         //服务器地址
         'host'      => '127.0.0.1',
@@ -57,15 +62,31 @@ class MysqlPool
         
         $this->config = array_merge($this->config, $config);
         $this->pool   = new Swoole\Coroutine\Channel($this->config['poolMax']);
+
+
+        if($this->config['log']){
+            $this->checkTable();
+        }
     }
 
 
+    /**
+     * @入池
+     *
+     * @param $mysql
+     */
     public function put($mysql)
     {
         $this->pool->push($mysql);
         $this->pushTime = time();
     }
 
+
+    /**
+     * @出池
+     *
+     * @return bool|mixed|Swoole\Coroutine\Mysql
+     */
     public function get()
     {
         if (!$this->available) {
@@ -73,6 +94,7 @@ class MysqlPool
         }
 
 
+        //超出池最大值时
         if ($this->pool->length() >= $this->config['poolMax']) {
             return false;
         }
@@ -104,6 +126,11 @@ class MysqlPool
     }
 
 
+    /**
+     * @定时器
+     *
+     * @param $server
+     */
     public function clearTimer($server)
     {
         $server->tick($this->config['clearTime'], function () use ($server) {
@@ -119,6 +146,47 @@ class MysqlPool
                 }
             }
         });
+    }
+
+
+    /**
+     * 检测日志表是否存在
+     */
+    protected function checkTable()
+    {
+        $tableName = "{$this->config['prefix']}sethink_log";
+
+        $sql = "show tables like '{$tableName}'";
+
+        $mysql = $this->get();
+
+        if (!$mysql->query($sql)) {
+            $createTableSql = $this->createTable($tableName);
+            $mysql->query($createTableSql);
+        }
+
+        $this->put($mysql);
+    }
+
+
+    /**
+     * 创建表
+     *
+     * @param $tableName
+     * @return string
+     */
+    protected function createTable($tableName)
+    {
+        return "CREATE TABLE {$tableName}
+            (
+              `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+              `type` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '日志类型',
+              `time` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '产生日志时间',
+              `info` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '日志信息',
+              `class` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '文件路径',
+              `line` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '产生日志时执行的行数',
+              `sql` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '产生日志时执行的sql语句'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='日志'";
     }
 
 

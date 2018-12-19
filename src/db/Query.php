@@ -355,7 +355,7 @@ class Query
             $time      = date('Y-m-d H:i:s', time());
             $info      = $this->options['log'][1];
             $execSql   = $this->getRealSql($result);
-            $logInfo   = $this->getLogInfo();
+            $logInfo   = $this->classInfo();
 
             $sql = "INSERT INTO `{$tableName}` (`type`,`time`,`info`,`class`,`line`,`sql`) VALUES ('{$this->options['log'][0]}','{$time}','{$info}','{$logInfo[0]}','{$logInfo[1]}','{$execSql}')";
 
@@ -382,7 +382,7 @@ class Query
     }
 
 
-    protected function getLogInfo()
+    protected function classInfo()
     {
         $count = count(debug_backtrace());
         $info  = debug_backtrace()[$count - 1];
@@ -392,9 +392,6 @@ class Query
             $info['line']
         ];
     }
-
-
-
 
 
 
