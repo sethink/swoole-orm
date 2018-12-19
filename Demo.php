@@ -70,5 +70,4 @@ class Demo
 }
 
 
-
 new Demo();
