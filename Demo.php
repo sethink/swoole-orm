@@ -46,7 +46,7 @@ class Demo
             'host'      => '127.0.0.1',
             'port'      => 3306,
             'user'      => 'root',
-            'password'  => 'fengHAISHI1023',
+            'password'  => 'root',
             'charset'   => 'utf8',
             'database'  => 'test',
             'prefix'    => 'sethink_',
