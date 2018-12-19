@@ -5,6 +5,8 @@
 
 namespace sethink\swooleOrm\db;
 
+use Swoole;
+
 class Query
 {
     //server
@@ -28,6 +30,7 @@ class Query
         'lock'      => false,
         'fetch_sql' => false,
         'data'      => [],
+        'log'       => []
     ];
 
 
@@ -58,6 +61,9 @@ class Query
      */
     public function name($tableName = '')
     {
+        if($this->MysqlPool->config['prefix'] != ''){
+            $tableName = $this->MysqlPool->config['prefix'].$tableName;
+        }
         $this->options['table'] = $tableName;
         return $this;
     }
@@ -292,8 +298,14 @@ class Query
         if (is_string($result)) {
             $rs = $mysql->query($result);
             if ($mysql->errno == 2006 or $mysql->errno == 2013) {
+
+                $this->log(['数据库连接失效','MySQL server has gone away']);
+                $this->writeLog($result, '');
+
                 goto back;
             } else {
+                $this->writeLog($result, $mysql);
+
                 $this->MysqlPool->put($mysql);
                 return $rs;
             }
@@ -303,15 +315,89 @@ class Query
             if ($stmt) {
                 $rs = $stmt->execute($result['sethinkBind']);
 
+                $this->writeLog($result, $mysql);
+
                 $this->MysqlPool->put($mysql);
                 return $rs;
             } elseif ($mysql->errno == 2006 or $mysql->errno == 2013) {
+
+                $this->log(['数据库连接失效','MySQL server has gone away']);
+                $this->writeLog($result, '');
+
                 goto back;
             }
         }
 
         return false;
     }
+
+
+    /**
+     * @写日志
+     *
+     * @param array $logArray
+     * @return $this
+     */
+    public function log($logArray = [])
+    {
+        if ($this->MysqlPool->config['log']) {
+            $this->options['log'] = $logArray;
+        }
+        return $this;
+    }
+
+
+    protected function writeLog($result, $mysql)
+    {
+        if (count($this->options['log']) > 0) {
+
+            $tableName = "{$this->MysqlPool->config['prefix']}sethink_log";
+            $time      = date('Y-m-d H:i:s', time());
+            $info      = $this->options['log'][1];
+            $execSql   = $this->getRealSql($result);
+            $logInfo   = $this->getLogInfo();
+
+            $sql = "INSERT INTO `{$tableName}` (`type`,`time`,`info`,`class`,`line`,`sql`) VALUES ('{$this->options['log'][0]}','{$time}','{$info}','{$logInfo[0]}','{$logInfo[1]}','{$execSql}')";
+
+            if ($mysql != '') {
+                $mysql->query($sql);
+            } else {
+                $mysql = new Swoole\Coroutine\Mysql();
+
+                $res = $mysql->connect([
+                    'host'     => $this->MysqlPool->config['host'],
+                    'port'     => $this->MysqlPool->config['port'],
+                    'user'     => $this->MysqlPool->config['user'],
+                    'password' => $this->MysqlPool->config['password'],
+                    'charset'  => $this->MysqlPool->config['charset'],
+                    'database' => $this->MysqlPool->config['database']
+                ]);
+
+                if ($res) {
+                    $mysql->query($sql);
+                    $this->MysqlPool->put($mysql);
+                }
+            }
+        }
+    }
+
+
+    protected function getLogInfo()
+    {
+        $count = count(debug_backtrace());
+        $info  = debug_backtrace()[$count - 1];
+
+        return [
+            $info['file'],
+            $info['line']
+        ];
+    }
+
+
+
+
+
+
 
 
     /**

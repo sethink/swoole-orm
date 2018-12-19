@@ -17,7 +17,7 @@ class MysqlPool
 
     protected $pushTime = 0;
 
-    protected $config = [
+    public $config = [
         //服务器地址
         'host'      => '127.0.0.1',
         //端口
@@ -30,6 +30,10 @@ class MysqlPool
         'charset'   => 'utf8',
         //数据库名
         'database'  => '',
+        //表前缀
+        'prefix'    => '',
+        //开启日志,记录断线重连
+        'log'       => false,
         //空闲时，保存的最大链接，默认为5
         'poolMin'   => 5,
         //地址池最大连接数，默认1000

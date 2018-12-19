@@ -46,9 +46,10 @@ class Demo
             'host'      => '127.0.0.1',
             'port'      => 3306,
             'user'      => 'root',
-            'password'  => 'root',
+            'password'  => 'fengHAISHI1023',
             'charset'   => 'utf8',
             'database'  => 'test',
+            'prefix'    => 'sethink_',
             'poolMin'   => 5,
             'clearTime' => 60000,
             'clearAll'  => 300000,
@@ -62,7 +63,7 @@ class Demo
     {
 
         $rs = Db::init($this->MysqlPool)
-            ->name('tt')
+            ->name('test')
             ->select();
         var_dump($rs);
     }

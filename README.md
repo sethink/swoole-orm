@@ -391,3 +391,26 @@ $data为一维数组
 $sql = 'select * from `user_info`';
 Db::init($this->MysqlPool)->query($sql);
 ```
+
+### log($logArray)
+```
+开启日志功能
+$logArray = [
+    '类型',
+    '信息'
+];
+
+$logArray为一维数组，长度为2
+$logArray[0]是日志类型
+$logArray[1]是日志信息
+```
+
+例子：
+```php
+<?php
+$Db::init($this->MysqlPool)
+    ->name('user_info')
+    ->where(['username'=>'sethink'])
+    ->log(['查询用户信息','用户名sethink'])
+    ->find();
+```
