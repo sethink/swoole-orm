@@ -65,7 +65,7 @@ class MysqlPool
 
 
         if($this->config['log']){
-            $this->checkTable();
+            $this->createTable();
         }
     }
 
@@ -150,9 +150,9 @@ class MysqlPool
 
 
     /**
-     * 检测日志表是否存在
+     * 创建日志表
      */
-    protected function checkTable()
+    protected function createTable()
     {
         $tableName = "{$this->config['prefix']}sethink_log";
 
@@ -161,7 +161,7 @@ class MysqlPool
         $mysql = $this->get();
 
         if (!$mysql->query($sql)) {
-            $createTableSql = $this->createTable($tableName);
+            $createTableSql = $this->logTable($tableName);
             $mysql->query($createTableSql);
         }
 
@@ -170,12 +170,12 @@ class MysqlPool
 
 
     /**
-     * 创建表
+     * 日志表结构
      *
      * @param $tableName
      * @return string
      */
-    protected function createTable($tableName)
+    protected function logTable($tableName)
     {
         return "CREATE TABLE {$tableName}
             (
