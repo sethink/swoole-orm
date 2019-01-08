@@ -450,6 +450,20 @@ $Db::init($this->MysqlPool)
 部分操作，例如insert，update等，如果不需要返回结果，则可以设置为false。
 
 相对于$bool为true，sql执行后，由于主进程和协程间不需要再通信，可以立即往下执行程序
+
+也可以全局设置
+$config = [
+    'host'      => '127.0.0.1', //服务器地址
+    'port'      => 3306,    //端口
+    'user'      => 'root',  //用户名
+    'password'  => 'root',  //密码
+    'charset'   => 'utf8',  //编码
+    'database'  => 'test',  //数据库名
+    'prefix'    => 'sethink_',  //表前缀
+    'poolMin'   => 5, //空闲时，保存的最大链接，默认为5
+    'setDefer'  => true     //设置是否返回结果,默认为true
+];
+$this->MysqlPool = new MysqlPool($config);
 ```
 
 ```php
