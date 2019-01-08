@@ -45,14 +45,15 @@ class Demo
         $config = [
             'host'      => '127.0.0.1',
             'port'      => 3306,
-            'user'      => 'root',
-            'password'  => 'root',
+            'user'      => 'sethink',
+            'password'  => 'sethink',
             'charset'   => 'utf8',
             'database'  => 'test',
             'prefix'    => 'sethink_',
             'poolMin'   => 5,
             'clearTime' => 60000,
             'clearAll'  => 300000,
+            'log'       => true,
             'setDefer'  => true
         ];
         $this->MysqlPool = new MysqlPool($config);
@@ -63,10 +64,10 @@ class Demo
     public function onRequest($request, $response)
     {
 
-        $rs = Db::init($this->MysqlPool)
-            ->name('test')
-            ->select();
-        var_dump($rs);
+//        $rs = Db::init($this->MysqlPool)
+//            ->name('test')
+//            ->select();
+//        var_dump($rs);
 
     }
 }

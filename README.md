@@ -26,6 +26,7 @@
 ```
 1、添加setDefer -> 设置是否返回结果(默认为true。部分操作，例如insert，update等，如果不需要返回返回结果，则可以设置为false)
 2、使用go处理协程
+3、完善日志功能
 
 ```
 
@@ -87,7 +88,9 @@ class Demo
             'poolMax'   => 1000,    //地址池最大连接数，默认1000
             'clearTime' => 60000, //清除空闲链接定时器，默认60秒，单位ms
             'clearAll'  => 300000,  //空闲多久清空所有连接，默认5分钟，单位ms
-            'setDefer'  => true     //设置是否返回结果,默认为true
+            'setDefer'  => true,     //设置是否返回结果,默认为true,
+            'log'       => true,    //开启日志功能,默认为false
+            'log_db'    => 'log' //日志表，默认为log
         ];
         $this->MysqlPool = new MysqlPool($config);
         unset($config);
@@ -424,7 +427,13 @@ Db::init($this->MysqlPool)->query($sql);
 
 ### log($logArray)
 ```
-开启日志功能
+开启日志功能。配置加上
+$config = [
+    'log'       => true, //开启日志功能
+    'log_db'    => 'log' //日志表
+];
+
+
 $logArray = [
     '类型',
     '信息'

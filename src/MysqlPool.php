@@ -48,7 +48,9 @@ class MysqlPool
         //空闲多久清空所有连接,默认300s
         'clearAll'  => 300,
         //设置是否返回结果
-        'setDefer'  => true
+        'setDefer'  => true,
+        //日志表
+        'log_db' => 'sethink_log'
     ];
 
 
