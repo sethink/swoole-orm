@@ -42,7 +42,7 @@ class Demo
 
     public function onWorkerStart($server, $worker_id)
     {
-        $config    = [
+        $config = [
             'host'      => '127.0.0.1',
             'port'      => 3306,
             'user'      => 'root',
@@ -53,6 +53,7 @@ class Demo
             'poolMin'   => 5,
             'clearTime' => 60000,
             'clearAll'  => 300000,
+            'setDefer'  => true
         ];
         $this->MysqlPool = new MysqlPool($config);
         unset($config);
@@ -66,6 +67,7 @@ class Demo
             ->name('test')
             ->select();
         var_dump($rs);
+
     }
 }
 

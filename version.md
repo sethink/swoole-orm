@@ -1,8 +1,5 @@
-v0.0.3
+v0.0.4
 ```
-1、将splqueque修改为channel
-2、添加lock()
-3、添加日志
-4、表前缀
+1、添加setDefer -> 设置是否返回结果(默认为true。部分操作，例如insert，update等，如果不需要返回返回结果，则可以设置为false)
 
 ```

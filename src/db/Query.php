@@ -30,7 +30,9 @@ class Query
         'lock'      => false,
         'fetch_sql' => false,
         'data'      => [],
-        'log'       => []
+        'log'       => [],
+        'prefix'    => '',
+        'setDefer'  => true
     ];
 
 
@@ -47,8 +49,11 @@ class Query
      * @param $MysqlPool
      * @return $this
      */
-    public function init($MysqlPool){
-        $this->MysqlPool = $MysqlPool;
+    public function init($MysqlPool)
+    {
+        $this->MysqlPool           = $MysqlPool;
+        $this->options['prefix']   = $MysqlPool->config['prefix'];
+        $this->options['setDefer'] = $MysqlPool->config['setDefer'];
         return $this;
     }
 
@@ -61,10 +66,7 @@ class Query
      */
     public function name($tableName = '')
     {
-        if($this->MysqlPool->config['prefix'] != ''){
-            $tableName = $this->MysqlPool->config['prefix'].$tableName;
-        }
-        $this->options['table'] = $tableName;
+        $this->options['table'] = $this->options['prefix'].$tableName;
         return $this;
     }
 
@@ -191,6 +193,19 @@ class Query
 
 
     /**
+     * @设置是否返回结果
+     *
+     * @param bool $bool
+     * @return $this
+     */
+    public function setDefer(bool $bool = true)
+    {
+        $this->options['setDefer'] = $bool;
+        return $this;
+    }
+
+
+    /**
      * @查询一条数据
      *
      * @return array|mixed
@@ -291,44 +306,56 @@ class Query
      */
     public function query($result)
     {
-        back:
+        $chan = new \chan(1);
+        go(function () use ($chan,$result){
+            back:
 
-        $mysql = $this->MysqlPool->get();
+            $mysql = $this->MysqlPool->get();
 
-        if (is_string($result)) {
-            $rs = $mysql->query($result);
-            if ($mysql->errno == 2006 or $mysql->errno == 2013) {
+            if (is_string($result)) {
+                $rs = $mysql->query($result);
+                if ($mysql->errno == 2006 or $mysql->errno == 2013) {
 
-                $this->log(['数据库连接失效','MySQL server has gone away']);
-                $this->writeLog($result, '');
+                    $this->log(['数据库连接失效','MySQL server has gone away']);
+                    $this->writeLog($result, '');
 
-                goto back;
+                    goto back;
+                } else {
+                    $this->writeLog($result, $mysql);
+
+                    $this->MysqlPool->put($mysql);
+
+                    if($this->options['setDefer']){
+                        $chan->push($rs);
+                    }
+                }
             } else {
-                $this->writeLog($result, $mysql);
+                $stmt = $mysql->prepare($result['sql']);
 
-                $this->MysqlPool->put($mysql);
-                return $rs;
+                if ($stmt) {
+                    $rs = $stmt->execute($result['sethinkBind']);
+
+                    $this->writeLog($result, $mysql);
+
+                    $this->MysqlPool->put($mysql);
+
+                    if($this->options['setDefer']){
+                        $chan->push($rs);
+                    }
+
+                } elseif ($mysql->errno == 2006 or $mysql->errno == 2013) {
+
+                    $this->log(['数据库连接失效','MySQL server has gone away']);
+                    $this->writeLog($result, '');
+
+                    goto back;
+                }
             }
-        } else {
-            $stmt = $mysql->prepare($result['sql']);
+        });
 
-            if ($stmt) {
-                $rs = $stmt->execute($result['sethinkBind']);
-
-                $this->writeLog($result, $mysql);
-
-                $this->MysqlPool->put($mysql);
-                return $rs;
-            } elseif ($mysql->errno == 2006 or $mysql->errno == 2013) {
-
-                $this->log(['数据库连接失效','MySQL server has gone away']);
-                $this->writeLog($result, '');
-
-                goto back;
-            }
+        if($this->options['setDefer']){
+            return $chan->pop();
         }
-
-        return false;
     }
 
 
@@ -347,7 +374,7 @@ class Query
     }
 
 
-    protected function writeLog($result, $mysql)
+    public function writeLog($result='', $mysql='')
     {
         if (count($this->options['log']) > 0) {
 
@@ -413,6 +440,7 @@ class Query
 
         return $result['sql'];
     }
+
 
 
     public function __destruct()

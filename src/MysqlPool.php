@@ -47,6 +47,8 @@ class MysqlPool
         'clearTime' => 60000,
         //空闲多久清空所有连接,默认300s
         'clearAll'  => 300,
+        //设置是否返回结果
+        'setDefer'  => true
     ];
 
 
@@ -121,6 +123,7 @@ class MysqlPool
         if ($res) {
             return $mysql;
         } else {
+            var_dump("Can't connect to MySQL server");
             return false;
         }
     }
