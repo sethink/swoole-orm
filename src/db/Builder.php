@@ -337,7 +337,6 @@ class Builder
 
     public function __destruct()
     {
-        // TODO: Implement __destruct() method.
         unset($this->sethinkBind);
     }
 
