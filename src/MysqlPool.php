@@ -41,8 +41,6 @@ class MysqlPool
         'log'       => false,
         //空闲时，保存的最大链接，默认为5
         'poolMin'   => 5,
-        //地址池最大连接数，默认1000
-        'poolMax'   => 1000,
         //清除空闲链接的定时器，默认60s
         'clearTime' => 60000,
         //空闲多久清空所有连接,默认300s
@@ -94,12 +92,6 @@ class MysqlPool
     public function get()
     {
         if (!$this->available) {
-            return false;
-        }
-
-
-        //超出池最大值时
-        if ($this->pool->length() >= $this->config['poolMax']) {
             return false;
         }
 
