@@ -37,8 +37,6 @@ class MysqlPool
         'database'  => '',
         //表前缀
         'prefix'    => '',
-        //开启日志,记录断线重连
-        'log'       => false,
         //空闲时，保存的最大链接，默认为5
         'poolMin'   => 5,
         //地址池最大连接数，默认1000
@@ -48,29 +46,22 @@ class MysqlPool
         //空闲多久清空所有连接,默认300s
         'clearAll'  => 300,
         //设置是否返回结果
-        'setDefer'  => true,
-        //日志表
-        'log_db' => 'sethink_log'
+        'setDefer'  => true
     ];
 
 
     public function __construct($config)
     {
         if (isset($config['clearAll'])) {
-            if($config['clearAll'] < $config['clearTime']){
-                $config['clearAll'] = (int)($config['clearTime']/1000);
-            }else{
-                $config['clearAll'] = (int)($config['clearAll']/1000);
+            if ($config['clearAll'] < $config['clearTime']) {
+                $config['clearAll'] = (int)($config['clearTime'] / 1000);
+            } else {
+                $config['clearAll'] = (int)($config['clearAll'] / 1000);
             }
         }
-        
+
         $this->config = array_merge($this->config, $config);
         $this->pool   = new Swoole\Coroutine\Channel($this->config['poolMax']);
-
-
-        if($this->config['log']){
-            $this->createTable();
-        }
     }
 
 
@@ -95,34 +86,46 @@ class MysqlPool
      */
     public function get()
     {
+        $re_i = -1;
+
+        back:
+        $re_i++;
+
         if (!$this->available) {
-            return false;
+            $this->dumpException('Mysql连接池正在销毁');
         }
 
         //有空闲连接且连接池处于可用状态
         if ($this->pool->length() > 0) {
-            return $this->pool->pop();
+            $mysql = $this->pool->pop();
+        } else {
+            //无空闲连接，创建新连接
+            $mysql = new Swoole\Coroutine\Mysql();
+
+            $mysql->connect([
+                'host'     => $this->config['host'],
+                'port'     => $this->config['port'],
+                'user'     => $this->config['user'],
+                'password' => $this->config['password'],
+                'charset'  => $this->config['charset'],
+                'database' => $this->config['database']
+            ]);
+
+            $this->addPoolTime = time();
         }
 
-        //无空闲连接，创建新连接
-        $mysql = new Swoole\Coroutine\Mysql();
-
-        $res = $mysql->connect([
-            'host'     => $this->config['host'],
-            'port'     => $this->config['port'],
-            'user'     => $this->config['user'],
-            'password' => $this->config['password'],
-            'charset'  => $this->config['charset'],
-            'database' => $this->config['database']
-        ]);
-
-        $this->addPoolTime = time();
-
-        if ($res) {
+        if ($mysql->connected === true && $mysql->connect_error === '') {
             return $mysql;
         } else {
-            var_dump("Can't connect to MySQL server");
-            return false;
+            if ($re_i <= $this->config['poolMin']) {
+                $this->dumpError("重连次数{$re_i}，[errCode：{$mysql->connect_error}，errMsg：{$mysql->connect_errno}]");
+
+                $mysql->close();
+                unset($mysql);
+                goto back;
+            }
+
+            $this->dumpException('Mysql重连失败');
         }
     }
 
@@ -151,43 +154,24 @@ class MysqlPool
 
 
     /**
-     * 创建日志表
+     * @打印错误信息
+     *
+     * @param $msg
      */
-    protected function createTable()
+    public function dumpError($msg)
     {
-        $tableName = "{$this->config['prefix']}sethink_log";
-
-        $sql = "show tables like '{$tableName}'";
-
-        $mysql = $this->get();
-
-        if (!$mysql->query($sql)) {
-            $createTableSql = $this->logTable($tableName);
-            $mysql->query($createTableSql);
-        }
-
-        $this->put($mysql);
+        var_dump(date('Y-m-d H:i:s', time()) . "：{$msg}");
     }
 
 
     /**
-     * 日志表结构
+     * @抛出异常
      *
-     * @param $tableName
-     * @return string
+     * @param $msg
      */
-    protected function logTable($tableName)
+    public function dumpException($msg)
     {
-        return "CREATE TABLE {$tableName}
-            (
-              `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-              `type` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '日志类型',
-              `time` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '产生日志时间',
-              `info` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '日志信息',
-              `class` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '文件路径',
-              `line` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '产生日志时执行的行数',
-              `sql` VARCHAR (255) NOT NULL DEFAULT '' COMMENT '产生日志时执行的sql语句'
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='日志'";
+        throw new \RuntimeException(date('Y-m-d H:i:s', time()) . "：{$msg}");
     }
 
 

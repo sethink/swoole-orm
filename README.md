@@ -26,8 +26,11 @@
 ```
 1、添加setDefer -> 设置是否返回结果(默认为true。部分操作，例如insert，update等，如果不需要返回返回结果，则可以设置为false)
 2、使用go处理协程
-3、完善日志功能
-
+3、去掉日志功能，修改为在log文件打印错误信息和抛出异常
+4、添加断线重连功能
+5、添加instance()函数，如果有特殊需求扩展无法实现，又想共用连接池时，譬如事务处理，此时可以通过instance获取一个连接
+6、添加put()函数，配合instance使用，使用完连接后，将连接put回连接池里
+7、find()函数bug修复，返回一维数组
 ```
 
 
@@ -52,7 +55,6 @@ use swoole;
 class Demo
 {
     protected $server;
-
     protected $MysqlPool;
 
     public function __construct()
@@ -89,8 +91,6 @@ class Demo
             'clearTime' => 60000, //清除空闲链接定时器，默认60秒，单位ms
             'clearAll'  => 300000,  //空闲多久清空所有连接，默认5分钟，单位ms
             'setDefer'  => true,     //设置是否返回结果,默认为true,
-            'log'       => true,    //开启日志功能,默认为false
-            'log_db'    => 'log' //日志表，默认为log
         ];
         $this->MysqlPool = new MysqlPool($config);
         unset($config);
@@ -118,7 +118,6 @@ new Demo();
 ### 查询单条
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username,info')
@@ -129,7 +128,6 @@ Db::init($this->MysqlPool)
 ### 查询多条
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('info')
     ->field('id,username,password,info')
@@ -143,7 +141,6 @@ Db::init($this->MysqlPool)
 
 ```php
 <?php
-
 $data = [
     'username' => 'sethink2',
     'password' => 'sethink2',
@@ -159,7 +156,6 @@ Db::init($this->MysqlPool)
 
 ```php
 <?php
-
 $data = [
     [
         'username' => 'sethink3',
@@ -182,7 +178,6 @@ Db::init($this->MysqlPool)
 
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->where(['username'=>'sethink4'])
@@ -193,7 +188,6 @@ Db::init($this->MysqlPool)
 
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->where(['username'=>'sethink4'])
@@ -206,6 +200,28 @@ Db::init($this->MysqlPool)
 ### init($server)
 ```
 $server为swoole服务器
+```
+
+### instance()
+```
+如果有特殊需求扩展无法实现，又想共用连接池时，譬如事务处理，此时可以通过instance获取一个连接
+```
+例子：
+```php
+<?php
+$mysql = Db::init($this->MysqlPool)->instance();
+```
+
+### put($mysql)
+```
+配合instance使用，使用完连接后，将连接put回连接池里
+```
+例子：
+```php
+<?php
+$mysql = Db::init($this->MysqlPool)->instance();
+$mysql->query('select * from `user_info`');
+Db::init($this->MysqlPool)->put($mysql);
 ```
 
 ### name($tableName)
@@ -222,12 +238,10 @@ $field为查询的字段名   --  字符串
 ```
 order by排序  --  数组(一维数组或者二维数组)
 ```
-
 例子：
 $order为一维数组时
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
@@ -238,7 +252,6 @@ Db::init($this->MysqlPool)
 $order为二维数组时
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
@@ -254,7 +267,6 @@ group by分组  --  字符串
 例子：
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
@@ -271,7 +283,6 @@ Db::init($this->MysqlPool)
 例子：
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
@@ -290,7 +301,6 @@ $distinct为bool值
 例子：
 ```php
 <?php
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
@@ -306,7 +316,6 @@ Db::init($this->MysqlPool)
 例子：
 ```php
 <?php
-
 //1、传入bool值
 Db::init($this->MysqlPool)
     ->name('user_info')
@@ -333,8 +342,6 @@ Db::init($this->MysqlPool)
 例子：
 ```php
 <?php
-
-
 Db::init($this->MysqlPool)
     ->name('user_info')
     ->field('id,username')
@@ -370,6 +377,10 @@ $where = [
     'id'=>['in',['1','5']]
 ];
 
+//5、
+$where = [
+    'note_info'=>['=','sethink','or']
+];
 
 
 Db::init($this->MysqlPool)
@@ -420,38 +431,8 @@ $data为一维数组
 例子：
 ```php
 <?php
-    
 $sql = 'select * from `user_info`';
 Db::init($this->MysqlPool)->query($sql);
-```
-
-### log($logArray)
-```
-开启日志功能。配置加上
-$config = [
-    'log'       => true, //开启日志功能
-    'log_db'    => 'log' //日志表
-];
-
-
-$logArray = [
-    '类型',
-    '信息'
-];
-
-$logArray为一维数组，长度为2
-$logArray[0]是日志类型
-$logArray[1]是日志信息
-```
-
-例子：
-```php
-<?php
-$Db::init($this->MysqlPool)
-    ->name('user_info')
-    ->where(['username'=>'sethink'])
-    ->log(['查询用户信息','用户名sethink'])
-    ->find();
 ```
 
 ### setDefer($bool)
@@ -460,16 +441,8 @@ $Db::init($this->MysqlPool)
 
 相对于$bool为true，sql执行后，由于主进程和协程间不需要再通信，可以立即往下执行程序
 
-也可以全局设置
+也可以全局设置，添加配置
 $config = [
-    'host'      => '127.0.0.1', //服务器地址
-    'port'      => 3306,    //端口
-    'user'      => 'root',  //用户名
-    'password'  => 'root',  //密码
-    'charset'   => 'utf8',  //编码
-    'database'  => 'test',  //数据库名
-    'prefix'    => 'sethink_',  //表前缀
-    'poolMin'   => 5, //空闲时，保存的最大链接，默认为5
     'setDefer'  => true     //设置是否返回结果,默认为true
 ];
 $this->MysqlPool = new MysqlPool($config);

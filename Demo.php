@@ -53,7 +53,6 @@ class Demo
             'poolMin'   => 5,
             'clearTime' => 60000,
             'clearAll'  => 300000,
-            'log'       => true,
             'setDefer'  => true
         ];
         $this->MysqlPool = new MysqlPool($config);
@@ -64,11 +63,11 @@ class Demo
     public function onRequest($request, $response)
     {
 
-//        $rs = Db::init($this->MysqlPool)
-//            ->name('test')
-//            ->select();
-//        var_dump($rs);
+        $rs = Db::init($this->MysqlPool)
+            ->name('test')
+            ->find();
 
+        var_dump($rs);
     }
 }
 
