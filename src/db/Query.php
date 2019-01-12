@@ -328,7 +328,7 @@ class Query
      * @执行sql
      *
      * @param $result
-     * @return bool
+     * @return mixed
      */
     public function query($result)
     {
