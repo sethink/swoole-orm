@@ -19,6 +19,7 @@ class Query
         'table'     => '',
         'alias'     => [],
         'where'     => [],
+        'whereNum'  => 0,
         'field'     => '*',
         'order'     => [],
         'distinct'  => false,
@@ -173,7 +174,8 @@ class Query
      */
     public function where($whereArray = [])
     {
-        $this->options['where'] = $whereArray;
+        $this->options['where'][$this->options['whereNum']] = $whereArray;
+        $this->options['whereNum']++;
         return $this;
     }
 
@@ -363,6 +365,7 @@ class Query
             }
         });
 
+        
         if ($this->options['setDefer']) {
             return $chan->pop();
         }

@@ -62,10 +62,14 @@ class Demo
 
     public function onRequest($request, $response)
     {
-
+        $where['id'] = ['>',5];
+        $where['id'] = ['<=',10];
         $rs = Db::init($this->MysqlPool)
             ->name('test')
-            ->find();
+            ->where(['id'=>['>',5]])
+            ->where(['id'=>['<=',10]])
+            ->fetchSql()
+            ->select();
 
         var_dump($rs);
     }

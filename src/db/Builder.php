@@ -275,18 +275,20 @@ class Builder
     protected function parseWhere($where)
     {
         $whereStr = '';
-        foreach ($where as $k => $v) {
-            if (is_array($v)) {
-                if (count($v) == 3 && strtoupper($v[2]) == 'OR') {
-                    $whereStr = rtrim($whereStr, " AND ") . ' OR ';
+        foreach ($where as $v) {
+            foreach ($v as $kk => $vv) {
+                if (is_array($vv)) {
+                    if (count($vv) == 3 && strtoupper($v[2]) == 'OR') {
+                        $whereStr = rtrim($whereStr, " AND ") . ' OR ';
+                    }
+                    $whereStr .= $this->whereExp($kk, $vv);
+                } else {
+                    $whereStr            .= "(`{$kk}` = ?)";
+                    $this->sethinkBind[] = $vv;
                 }
-                $whereStr .= $this->whereExp($k, $v);
-            } else {
-                $whereStr            .= "(`{$k}` = ?)";
-                $this->sethinkBind[] = $v;
-            }
 
-            $whereStr .= ' AND ';
+                $whereStr .= ' AND ';
+            }
         }
         $whereStr = rtrim($whereStr, " AND ");
         return empty($whereStr) ? '' : ' WHERE ' . $whereStr;
