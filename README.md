@@ -400,6 +400,15 @@ Db::init($this->MysqlPool)
     ->where($where)
     ->select();
 ```
+```php
+<?php
+Db::init($this->MysqlPool)
+    ->name('user_info')
+    ->field('id,username')
+    ->where(['id'=>['>',5]])
+    ->where(['id'=>['<=',10]])
+    ->select();
+```
 
 ### find()
 ```
