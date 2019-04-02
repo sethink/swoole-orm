@@ -278,7 +278,7 @@ class Builder
         foreach ($where as $v) {
             foreach ($v as $kk => $vv) {
                 if (is_array($vv)) {
-                    if (count($vv) == 3 && strtoupper($v[2]) == 'OR') {
+                    if (count($vv) == 3 && strtoupper($vv[2]) == 'OR') {
                         $whereStr = rtrim($whereStr, " AND ") . ' OR ';
                     }
                     $whereStr .= $this->whereExp($kk, $vv);
