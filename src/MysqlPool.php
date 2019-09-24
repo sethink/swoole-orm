@@ -118,7 +118,7 @@ class MysqlPool
             return $mysql;
         } else {
             if ($re_i <= $this->config['poolMin']) {
-                $this->dumpError("重连次数{$re_i}，[errCode：{$mysql->connect_error}，errMsg：{$mysql->connect_errno}]");
+                $this->dumpError("mysql-重连次数{$re_i}，[errCode：{$mysql->connect_error}，errMsg：{$mysql->connect_errno}]");
 
                 $mysql->close();
                 unset($mysql);
@@ -182,6 +182,12 @@ class MysqlPool
         while (!$this->pool->isEmpty()) {
             $this->pool->pop();
         }
+    }
+
+
+    public function getPoolSum()
+    {
+        return $this->pool->length();
     }
 
 }

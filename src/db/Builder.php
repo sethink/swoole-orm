@@ -20,6 +20,29 @@ class Builder
 
     protected $deleteSql = 'DELETE FROM %TABLE% %USING% %JOIN% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
 
+    /**
+     * @文件信息
+     *
+     * @return string
+     */
+    protected function class_info (){
+        return json_encode(debug_backtrace());
+    }
+
+
+    /**
+     * @错误信息格式
+     *
+     * @param $class_info
+     */
+    protected function dumpError($class_info){
+        echo PHP_EOL.PHP_EOL.PHP_EOL;
+        echo "=================================================================".PHP_EOL;
+        echo "时间：".date('Y-m-d H:m:i',time()).PHP_EOL.PHP_EOL;
+        echo "报错信息：(格式为json，请格式化后分析)".PHP_EOL;
+        echo $class_info.PHP_EOL;
+    }
+
 
     public function select($options)
     {
@@ -250,25 +273,28 @@ class Builder
 
     protected function whereExp($k, $v)
     {
-        $v[0] = strtoupper($v[0]);
+        if(array_key_exists(0,$v)){
+            $v[0] = strtoupper($v[0]);
 
-        switch ($v[0]) {
-            case '=':
-            case '<>':
-            case '>':
-            case '>=':
-            case '<':
-            case '<=':
-            case 'LIKE':
-            case 'NOT LIKE':
-                return $this->parseCompare($k, $v);
-                break;
-            case 'IN':
-            case 'NOT IN':
-                return $this->parseIn($k, $v);
-                break;
+            switch ($v[0]) {
+                case '=':
+                case '<>':
+                case '>':
+                case '>=':
+                case '<':
+                case '<=':
+                case 'LIKE':
+                case 'NOT LIKE':
+                    return $this->parseCompare($k, $v);
+                    break;
+                case 'IN':
+                case 'NOT IN':
+                    return $this->parseIn($k, $v);
+                    break;
+            }
+        }else{
+            $this->dumpError($this->class_info());
         }
-
         return false;
     }
 
@@ -276,9 +302,12 @@ class Builder
     {
         $whereStr = '';
         foreach ($where as $v) {
+
             foreach ($v as $kk => $vv) {
+
                 if (is_array($vv)) {
                     if (count($vv) == 3 && strtoupper($vv[2]) == 'OR') {
+
                         $whereStr = rtrim($whereStr, " AND ") . ' OR ';
                     }
                     $whereStr .= $this->whereExp($kk, $vv);

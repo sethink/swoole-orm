@@ -5,6 +5,7 @@
 
 namespace sethink\swooleOrm\db;
 
+use sethink\swooleOrm\MysqlPool;
 use Swoole;
 
 class Query
@@ -44,12 +45,36 @@ class Query
 
 
     /**
+     * @文件信息
+     *
+     * @return string
+     */
+    protected function class_info (){
+        return json_encode(debug_backtrace());
+    }
+
+
+    /**
+     * @错误信息格式
+     *
+     * @param $class_info
+     */
+    protected function dumpError($class_info){
+        echo PHP_EOL.PHP_EOL.PHP_EOL;
+        echo "=================================================================".PHP_EOL;
+        echo "时间：".date('Y-m-d H:m:i',time()).PHP_EOL.PHP_EOL;
+        echo "报错信息：(格式为json，请格式化后分析)".PHP_EOL;
+        echo $class_info.PHP_EOL;
+    }
+
+
+    /**
      * @初始化
      *
      * @param $MysqlPool
      * @return $this
      */
-    public function init($MysqlPool)
+    public function init(MysqlPool $MysqlPool)
     {
         $this->MysqlPool           = $MysqlPool;
         $this->options['prefix']   = $MysqlPool->config['prefix'];
@@ -335,13 +360,19 @@ class Query
     public function query($result)
     {
         $chan = new \chan(1);
-        go(function () use ($chan, $result) {
+
+        $class_info = $this->class_info();
+        go(function () use ($chan, $result,$class_info) {
+            $dumpError = false;
+
             $mysql = $this->MysqlPool->get();
 
             if (is_string($result)) {
                 $rs = $mysql->query($result);
 
-                $this->put($mysql);
+                if($rs === false){
+                    $dumpError = true;
+                }
 
                 if ($this->options['setDefer']) {
                     $chan->push($rs);
@@ -349,40 +380,43 @@ class Query
             } else {
                 $stmt = $mysql->prepare($result['sql']);
 
+                if($stmt === false){
+                    $dumpError = true;
+                }
+
                 if ($stmt) {
                     $rs = $stmt->execute($result['sethinkBind']);
 
-                    $this->put($mysql);
+                    if($rs === false){
+                        $dumpError = true;
+                    }
 
                     if ($this->options['setDefer']) {
-                        if($this->options['limit'] == 1){
-                            $chan->push($rs[0]);
-                        }else{
+                        if ($this->options['limit'] == 1) {
+                            if(count($rs) > 0){
+                                $chan->push($rs[0]);
+                            }else{
+                                $chan->push(null);
+                            }
+                        } else {
                             $chan->push($rs);
                         }
                     }
                 }
             }
+            $this->put($mysql);
+
+            if($dumpError){
+                $this->dumpError($class_info);
+                echo PHP_EOL."mysql_error : {$mysql->error}".PHP_EOL;
+                echo "mysql_errno : {$mysql->errno}".PHP_EOL;
+            }
         });
 
-        
-        if ($this->options['setDefer']) {
+        if($this->options['setDefer']){
             return $chan->pop();
         }
     }
-
-
-//    protected function classInfo()
-//    {
-//        $count = count(debug_backtrace());
-//        $info  = debug_backtrace()[$count - 1];
-//
-//        return [
-//            $info['file'],
-//            $info['line']
-//        ];
-//    }
-
 
     /**
      * @sql语句
