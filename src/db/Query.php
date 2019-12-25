@@ -363,54 +363,63 @@ class Query
 
         $class_info = $this->class_info();
         go(function () use ($chan, $result,$class_info) {
-            $dumpError = false;
+            try{
+                $dumpError = false;
 
-            $mysql = $this->MysqlPool->get();
+                $mysql = $this->MysqlPool->get();
 
-            if (is_string($result)) {
-                $rs = $mysql->query($result);
-
-                if($rs === false){
-                    $dumpError = true;
-                }
-
-                if ($this->options['setDefer']) {
-                    $chan->push($rs);
-                }
-            } else {
-                $stmt = $mysql->prepare($result['sql']);
-
-                if($stmt === false){
-                    $dumpError = true;
-                }
-
-                if ($stmt) {
-                    $rs = $stmt->execute($result['sethinkBind']);
+                if (is_string($result)) {
+                    $rs = $mysql->query($result);
 
                     if($rs === false){
                         $dumpError = true;
                     }
 
                     if ($this->options['setDefer']) {
-                        if ($this->options['limit'] == 1) {
-                            if(count($rs) > 0){
-                                $chan->push($rs[0]);
-                            }else{
-                                $chan->push(null);
+                        $chan->push($rs);
+                    }
+                } else {
+                    $stmt = $mysql->prepare($result['sql']);
+
+                    if($stmt === false){
+                        $dumpError = true;
+                    }
+
+                    if ($stmt) {
+                        $rs = $stmt->execute($result['sethinkBind']);
+
+                        if($rs === false){
+                            $dumpError = true;
+                        }
+
+                        if ($this->options['setDefer']) {
+                            if ($this->options['limit'] == 1) {
+                                if(count($rs) > 0){
+                                    $chan->push($rs[0]);
+                                }else{
+                                    $chan->push(null);
+                                }
+                            } else {
+                                $chan->push($rs);
                             }
-                        } else {
-                            $chan->push($rs);
                         }
                     }
                 }
-            }
-            $this->put($mysql);
+                $this->put($mysql);
 
-            if($dumpError){
+                if($dumpError){
+                    $this->dumpError($class_info);
+                    echo PHP_EOL."mysql_error : {$mysql->error}".PHP_EOL;
+                    echo "mysql_errno : {$mysql->errno}".PHP_EOL;
+                }
+            }catch (\Exception $e){
                 $this->dumpError($class_info);
-                echo PHP_EOL."mysql_error : {$mysql->error}".PHP_EOL;
-                echo "mysql_errno : {$mysql->errno}".PHP_EOL;
+                var_dump($e);
+                if ($this->options['setDefer']) {
+                    $chan->push(null);
+                }
             }
+
         });
 
         if($this->options['setDefer']){
