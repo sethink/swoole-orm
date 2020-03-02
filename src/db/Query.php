@@ -400,7 +400,11 @@ class Query
                                     $chan->push(null);
                                 }
                             } else {
-                                $chan->push($rs);
+                                if (strstr($result['sql'], 'INSERT INTO')) {
+                                    $chan->push($mysql->insert_id);
+                                } else {
+                                    $chan->push($rs);
+                                }
                             }
                         }
                     }
