@@ -222,7 +222,12 @@ class Builder
 
     protected function parseTable($tableName)
     {
-        return "`$tableName`";
+        if (substr_count($tableName, '.') == 1) {
+            $arr = explode('.', $tableName);
+            return "`$arr[0]`.`$arr[1]`";
+        } else {
+            return "`$tableName`";
+        }
     }
 
     protected function parseDistinct($distinct)
